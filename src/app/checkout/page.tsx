@@ -25,6 +25,7 @@ import { useCart, ProductPlan } from "@/lib/cart-context";
 import { toast } from "sonner";
 import { OrderSuccessView, OrderDetails } from "./components/OrderSuccessView";
 import { FonepayQRModal } from "./components/FonepayQRModal";
+import { dealDripApi } from "@/lib/api-client";
 
 const PROVINCES = [
   "Bagmati Province",
@@ -170,58 +171,85 @@ function CheckoutContent() {
     processOrderSubmission();
   };
 
-  const processOrderSubmission = () => {
+  const processOrderSubmission = async () => {
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      const orderId = `DD-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
-      const finalCity = city === "Other" ? customCity : city;
+    const finalCity = city === "Other" ? customCity : city;
 
-      let paymentLabel = "Cash on Delivery (COD)";
-      if (paymentMethod === "esewa") {
-        paymentLabel = "eSewa Mobile Wallet";
-      } else if (paymentMethod === "banking_card") {
-        paymentLabel =
-          bankingSubtype === "qr"
-            ? "Local Mobile Banking (Fonepay QR)"
-            : "Visa / Mastercard Credit-Debit Card";
-      }
+    let paymentLabel = "Cash on Delivery (COD)";
+    if (paymentMethod === "esewa") {
+      paymentLabel = "eSewa Mobile Wallet";
+    } else if (paymentMethod === "banking_card") {
+      paymentLabel =
+        bankingSubtype === "qr"
+          ? "Local Mobile Banking (Fonepay QR)"
+          : "Visa / Mastercard Credit-Debit Card";
+    }
 
-      const orderData: OrderDetails = {
-        orderId,
-        date: new Date().toLocaleDateString("en-US", {
+    const payload = {
+      customerName: fullName,
+      phone,
+      email: email || undefined,
+      province,
+      city: finalCity,
+      address,
+      notes: notes || undefined,
+      paymentMethod: paymentLabel,
+      cart: {
+        plan: cart.plan,
+        quantity: cart.quantity,
+        couponCode: cart.couponCode || undefined,
+        discountAmount: cart.discountAmount,
+        discountPercentage: cart.discountPercentage,
+      },
+      subtotal,
+      discount,
+      total: grandTotal,
+    };
+
+    const res = await dealDripApi.createOrder(payload);
+
+    const orderData: OrderDetails = {
+      orderId: res.data?.orderId || `DD-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`,
+      date:
+        res.data?.date ||
+        new Date().toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
           year: "numeric",
           hour: "2-digit",
           minute: "2-digit",
         }),
-        customerName: fullName,
-        phone,
-        email: email || "Not provided",
-        province,
-        city: finalCity,
-        address,
-        notes,
-        paymentMethod: paymentLabel,
-        cart: { ...cart },
-        subtotal,
-        discount,
-        total: grandTotal,
-      };
+      customerName: fullName,
+      phone,
+      email: email || "Not provided",
+      province,
+      city: finalCity,
+      address,
+      notes,
+      paymentMethod: paymentLabel,
+      cart: { ...cart },
+      subtotal,
+      discount,
+      total: grandTotal,
+    };
 
-      try {
-        const prevOrders = JSON.parse(localStorage.getItem("deal_drip_orders") || "[]");
-        localStorage.setItem("deal_drip_orders", JSON.stringify([orderData, ...prevOrders]));
-      } catch (e) {
-        console.error(e);
-      }
+    try {
+      const prevOrders = JSON.parse(localStorage.getItem("deal_drip_orders") || "[]");
+      localStorage.setItem("deal_drip_orders", JSON.stringify([orderData, ...prevOrders]));
+    } catch (e) {
+      console.error(e);
+    }
 
-      setIsSubmitting(false);
-      setShowFonepayModal(false);
-      setCompletedOrder(orderData);
+    setIsSubmitting(false);
+    setShowFonepayModal(false);
+    setCompletedOrder(orderData);
+
+    if (res.isBackend) {
+      toast.success("Order Synced to Deal Drip API Server & Dispatched!");
+    } else {
       toast.success("Order Placed Successfully! We are dispatching your Deal Drip package.");
-    }, 1200);
+    }
   };
 
   if (completedOrder) {
