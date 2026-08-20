@@ -218,7 +218,7 @@ interface Hotspot {
   name: string;
   cameraPos: [number, number, number];
   targetPos: [number, number, number];
-  icon: typeof Sparkles;
+  icon: typeof Clock;
   description: string;
 }
 
@@ -226,18 +226,10 @@ const HOTSPOTS: Hotspot[] = [
   {
     id: "overview",
     name: "360° Overview",
-    cameraPos: [1.8, 1.2, 2.4],
-    targetPos: [0, 0, 0],
-    icon: Sparkles,
-    description: "Full perspective of the Deal Drip 15W bedside powerhouse.",
-  },
-  {
-    id: "front-clock",
-    name: "LED Clock & Alarm",
     cameraPos: [0, 0.2, 2.2],
     targetPos: [0, 0, 0],
     icon: Clock,
-    description: "Large LED digital clock, dual alarm controls & temperature.",
+    description: "Deal Drip 15W front face with LED digital clock, dual alarms and ambient RGB ring.",
   },
   {
     id: "top-qi",
@@ -2279,7 +2271,7 @@ export function ModelViewer3D() {
       0.1,
       100
     );
-    camera.position.copy(getResponsiveCameraPosition([1.8, 1.2, 2.4]));
+    camera.position.copy(getResponsiveCameraPosition([0, 0.2, 2.2]));
     cameraRef.current = camera;
 
     // Renderer
@@ -3065,7 +3057,7 @@ export function ModelViewer3D() {
   // Reset Camera View
   const handleResetView = useCallback(() => {
     setActiveHotspot("overview");
-    targetCamPos.current = getResponsiveCameraPosition([1.8, 1.2, 2.4]);
+    targetCamPos.current = getResponsiveCameraPosition([0, 0.2, 2.2]);
     targetLookPos.current = new THREE.Vector3(0, 0, 0);
     setAutoRotate(true);
     requestRenderRef.current();
