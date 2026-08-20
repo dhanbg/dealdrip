@@ -116,36 +116,27 @@ export default function Home() {
                 <Image
                   src="/deal-drip-logo.png"
                   alt="Deal Drip Logo"
-                  width={36}
-                  height={36}
-                  className="h-9 w-9 object-contain drop-shadow-md"
+                  width={32}
+                  height={32}
+                  className="h-8 w-8 object-contain"
                   priority
                 />
-                <span className="font-display text-sm font-semibold tracking-[0.25em] uppercase text-foreground">
+                <span className="font-display text-sm font-semibold tracking-[0.2em] uppercase text-foreground">
                   Deal Drip
                 </span>
               </div>
-              <div className="flex items-center gap-2 sm:gap-3">
-                <a
-                  href="#3d-studio"
-                  className="inline-flex items-center gap-1.5 border border-accent/40 bg-accent/10 px-3 py-2 text-xs tracking-[0.15em] text-accent uppercase transition-colors hover:bg-accent/20"
-                >
-                  <Box className="h-3 w-3" />
-                  3D Studio
-                </a>
-                <Link
-                  href="/checkout?plan=duo"
-                  className="hidden sm:inline-flex items-center gap-1.5 border border-chart-2/40 bg-chart-2/10 px-3 py-2 text-xs tracking-[0.15em] text-chart-2 uppercase transition-colors hover:bg-chart-2/20"
-                >
-                  <Sparkles className="h-3 w-3" />
-                  Twin Pack: Rs. 6,000
-                </Link>
+              <div className="flex items-center gap-6">
+                <nav className="hidden md:flex items-center gap-6 text-xs font-mono tracking-widest uppercase text-muted-foreground">
+                  <a href="#3d-studio" className="hover:text-foreground transition-colors">3D</a>
+                  <a href="#features" className="hover:text-foreground transition-colors">Features</a>
+                  <a href="#specs" className="hover:text-foreground transition-colors">Specs</a>
+                </nav>
                 <Link
                   href="/checkout?plan=single"
-                  className="inline-flex items-center gap-1.5 border border-border bg-foreground px-4 py-2 text-xs tracking-[0.2em] uppercase text-background transition-transform hover:scale-105 active:scale-95"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-xs font-semibold tracking-[0.15em] uppercase text-background transition-transform hover:scale-105 active:scale-95"
                 >
-                  <ShoppingBag className="h-3 w-3" />
-                  Buy Now
+                  <ShoppingBag className="h-3.5 w-3.5" />
+                  <span>Buy Now</span>
                 </Link>
               </div>
             </header>
@@ -165,8 +156,8 @@ export default function Home() {
                   stereo pairing — 15W Qi pad, LED display and ambient light in one bedside device.
                 </p>
 
-                <p className="text-xs tracking-[0.25em] text-muted-foreground uppercase">
-                  {loaded < 1 ? `Loading ${Math.round(loaded * 100)}%` : "Scroll to explore"}
+                <p className="text-xs tracking-[0.25em] text-muted-foreground uppercase font-mono">
+                  {loaded < 1 ? `Loading ${Math.round(loaded * 100)}%` : "Scroll to explore ↓"}
                 </p>
               </div>
             </div>
@@ -185,7 +176,7 @@ export default function Home() {
                         transform: `translateY(${visible ? 0 : 16}px)`,
                       }}
                     >
-                      <p className="text-xs tracking-[0.3em] text-muted-foreground uppercase">
+                      <p className="text-xs font-mono tracking-[0.3em] text-muted-foreground uppercase">
                         {c.kicker}
                       </p>
                       <h2 className="mt-4 text-3xl font-semibold md:text-5xl">{c.title}</h2>
@@ -209,12 +200,15 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Real-Time Interactive 3D Model Studio */}
+        <ModelViewer3D />
+
         {/* Features */}
-        <section className="border-t border-border px-6 py-24 md:px-12 md:py-32">
+        <section id="features" className="border-t border-border px-6 py-24 md:px-12 md:py-32">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-xs tracking-[0.3em] text-muted-foreground uppercase">
-                All-In-One Architecture
+              <p className="text-xs font-mono tracking-[0.3em] text-muted-foreground uppercase">
+                Architecture
               </p>
               <h2 className="mt-3 max-w-2xl text-3xl font-semibold md:text-5xl">
                 Five essentials, one silhouette.
@@ -226,69 +220,61 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="mt-16 grid gap-px bg-border md:grid-cols-6">
+          <div className="mt-16 grid gap-px bg-border md:grid-cols-2 lg:grid-cols-4">
             <Feature
-              className="md:col-span-4"
-              kicker="RGB light"
-              title="Colour-cycling ambient glow"
-              body="Seven light modes — hold one colour or let it fade slowly through the spectrum. Doubles as a soft night light for the room."
+              kicker="01 — Light"
+              title="RGB Halo Ring"
+              body="Seven selectable ambient color modes. Doubles as a soft, gradual bedside night light."
             />
             <Feature
-              className="md:col-span-2"
-              kicker="Charging"
-              title="15W Qi pad"
-              body="Fast wireless charging for iPhone, Samsung and any Qi phone. Just set it down."
+              kicker="02 — Power"
+              title="15W Qi Induction"
+              body="Fast wireless charging for iPhone, Samsung and Qi devices with heat & foreign-object safety."
             />
             <Feature
-              className="md:col-span-2"
-              kicker="Clock"
-              title="Time, date, temperature"
-              body="Large LED digits with dual alarms, 12/24-hour format and adjustable brightness."
+              kicker="03 — Time"
+              title="Digital Clock & Alarm"
+              body="Large LED clock display with dual independent wake alarms and room temperature sensor."
             />
             <Feature
-              className="md:col-span-4"
-              kicker="Audio & TWS"
-              title="Bluetooth 5.0 with TWS Dual Stereo"
-              body="Full-range acoustic driver behind acoustic fabric, True Wireless Stereo (TWS) dual speaker link for discrete Left & Right channels, hands-free mic, TF card, AUX and USB."
+              kicker="04 — Audio"
+              title="Bluetooth 5.0 & TWS"
+              body="Full-range acoustic driver, True Wireless Stereo link for discrete Left & Right channels."
             />
           </div>
         </section>
-
-        {/* Real-Time Interactive 3D Model Studio */}
-        <ModelViewer3D />
 
         {/* Dedicated TWS True Wireless Stereo Showcase */}
         <TwsShowcase />
 
         {/* Specs */}
-        <section className="border-t border-border px-6 py-24 md:px-12 md:py-32">
+        <section id="specs" className="border-t border-border px-6 py-24 md:px-12 md:py-32">
           <div className="grid gap-12 md:grid-cols-[1fr_2fr]">
             <div>
-              <p className="text-xs tracking-[0.3em] text-muted-foreground uppercase">
-                Technical Overview
+              <p className="text-xs font-mono tracking-[0.3em] text-muted-foreground uppercase">
+                Specifications
               </p>
-              <h2 className="mt-3 text-3xl font-semibold md:text-4xl">Specifications</h2>
+              <h2 className="mt-3 text-3xl font-semibold md:text-4xl">Technical Overview</h2>
               <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-                Engineered with premium components for high-efficiency wireless power and true stereo acoustic dynamics.
+                Engineered with high-efficiency Qi induction and balanced full-range acoustics.
               </p>
             </div>
             <dl className="divide-y divide-border">
               {[
-                ["Brand / Company", "Deal Drip"],
-                ["Product", "Deal Drip 15W RGB Wireless Charging Bluetooth Speaker with Clock & TWS"],
-                ["TWS Stereo Pairing", "Supported (Wirelessly link 2 units for true Left / Right channel separation)"],
-                ["Wireless charging", "Qi standard, up to 15W (10W / 7.5W / 5W compatible)"],
-                ["Bluetooth", "5.0 with TWS Dual Link, range up to 10 m"],
-                ["Playback modes", "Bluetooth 5.0 (TWS), TF card, USB disk, AUX 3.5 mm"],
-                ["Calls", "Built-in HD noise-reduction microphone, hands-free"],
-                ["Lighting", "RGB ambient halo ring, 7 selectable colour modes"],
-                ["Display", "LED digital clock — time, date, temperature, dual alarm"],
-                ["Power input", "USB-C, DC 5V / 2A (Fast charge adapter compatible)"],
-                ["Pricing", "Single Unit: Rs. 3,500 | TWS Duo Pack: Rs. 6,000 (Save Rs. 1,000)"],
+                ["Brand", "Deal Drip"],
+                ["Model", "Deal Drip 15W RGB Speaker with Clock & TWS"],
+                ["Wireless Charging", "Qi Standard, up to 15W Fast Charge"],
+                ["Bluetooth", "5.0 with TWS Dual Link (10m range)"],
+                ["Audio Playback", "Bluetooth 5.0, TF Card, USB Disk, AUX 3.5mm"],
+                ["Microphone", "Built-in HD Noise Reduction (Hands-Free Calls)"],
+                ["Lighting", "RGB 360° Ambient Halo Ring (7 Modes)"],
+                ["Display", "LED Digital Clock, Dual Alarms, Temperature"],
+                ["Power Input", "USB Type-C (5V / 2A Fast Input)"],
+                ["Price", "Rs. 3,500 (Single) • Rs. 6,000 (Duo Pack)"],
               ].map(([k, v]) => (
-                <div key={k} className="flex justify-between gap-8 py-4">
+                <div key={k} className="flex justify-between gap-8 py-3.5">
                   <dt className="text-sm text-muted-foreground">{k}</dt>
-                  <dd className="text-right text-sm font-medium">{v}</dd>
+                  <dd className="text-right text-sm font-medium text-foreground">{v}</dd>
                 </div>
               ))}
             </dl>
@@ -298,170 +284,153 @@ export default function Home() {
         {/* CTA & Pricing Selector */}
         <section
           id="reserve"
-          className="relative overflow-hidden border-t border-border px-6 py-28 md:px-12 md:py-40"
+          className="relative overflow-hidden border-t border-border px-6 py-24 md:px-12 md:py-32"
         >
-          <div className="rule-spectrum absolute inset-x-0 top-0 h-px" />
-
-          <div className="mx-auto max-w-4xl text-center">
-            <p className="text-xs tracking-[0.3em] text-muted-foreground uppercase">
-              Available now in Nepal • Free Islandwide Delivery Support
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-xs font-mono tracking-[0.3em] text-muted-foreground uppercase">
+              Free Nepal Delivery • Cash on Delivery
             </p>
-            <h2 className="mx-auto mt-6 text-4xl font-semibold md:text-7xl">
-              Choose your <span className="text-spectrum">sound setup</span>.
+            <h2 className="mx-auto mt-4 text-3xl font-semibold md:text-6xl">
+              Choose your setup.
             </h2>
-            <p className="mx-auto mt-6 max-w-lg text-sm text-muted-foreground">
-              Delivered across Nepal with Cash on Delivery via Daraz. Buy one for your bedside,
-              or grab the Twin Pack to unlock full TWS 360° dual stereo!
-            </p>
           </div>
 
           {/* Pricing Cards Grid */}
-          <div className="mx-auto mt-16 grid max-w-4xl gap-8 md:grid-cols-2">
+          <div className="mx-auto mt-14 grid max-w-4xl gap-6 md:grid-cols-2">
             {/* Option 1: Single Unit */}
-            <div className="relative flex flex-col justify-between rounded-2xl border border-border bg-background p-8 md:p-10 transition-all hover:border-border/80">
+            <div className="relative flex flex-col justify-between rounded-2xl border border-border bg-card/40 p-8 transition-all hover:border-border/80">
               <div>
-                <span className="rounded bg-secondary px-3 py-1 text-xs font-mono tracking-wider text-muted-foreground uppercase">
-                  Single Bedside Unit
+                <span className="rounded bg-secondary px-2.5 py-1 text-[11px] font-mono tracking-wider text-muted-foreground uppercase">
+                  Single Unit
                 </span>
                 <h3 className="mt-4 text-2xl font-semibold">1x Deal Drip 15W</h3>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  All-in-one RGB lamp, 15W Qi wireless charger, alarm clock and Bluetooth speaker.
+                  RGB lamp, 15W Qi wireless charger, alarm clock and Bluetooth speaker.
                 </p>
 
                 <div className="mt-6 flex items-baseline gap-2">
-                  <span className="text-4xl font-bold font-display">Rs. 3,500</span>
+                  <span className="text-3xl font-bold font-display">Rs. 3,500</span>
                   <span className="text-xs text-muted-foreground">/ unit</span>
                 </div>
 
-                <ul className="mt-8 space-y-3 text-sm text-muted-foreground">
-                  <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-foreground" />
+                <ul className="mt-6 space-y-2.5 text-xs text-muted-foreground">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-3.5 w-3.5 text-foreground" />
                     <span>1x Deal Drip 15W Speaker</span>
                   </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-foreground" />
-                    <span>15W Qi Fast Wireless Charging</span>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-3.5 w-3.5 text-foreground" />
+                    <span>15W Qi Fast Wireless Pad</span>
                   </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-foreground" />
-                    <span>LED Alarm Clock & Temperature</span>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-3.5 w-3.5 text-foreground" />
+                    <span>LED Clock &amp; Dual Alarm</span>
                   </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-foreground" />
-                    <span>7-Mode Ambient RGB Light</span>
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-foreground" />
-                    <span>TWS Ready (Pair another unit anytime)</span>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-3.5 w-3.5 text-foreground" />
+                    <span>7-Mode Ambient RGB Halo</span>
                   </li>
                 </ul>
               </div>
 
-              <div className="mt-10 space-y-2">
+              <div className="mt-8 space-y-2">
                 <Link
                   href="/checkout?plan=single"
-                  className="block text-center border border-border bg-card px-8 py-4 text-xs font-semibold tracking-[0.15em] uppercase transition-colors hover:bg-foreground hover:text-background"
+                  className="block text-center rounded-xl border border-border bg-foreground px-6 py-3.5 text-xs font-semibold tracking-wider text-background uppercase transition-transform hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  Order 1 Unit (Rs. 3,500)
+                  Order Single (Rs. 3,500)
                 </Link>
                 <a
                   href="https://www.daraz.com.np/products/-i1543733289-s12360955990.html"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block text-center text-[11px] text-muted-foreground underline hover:text-foreground"
+                  className="block text-center text-[11px] text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  or order via Daraz
+                  or buy via Daraz →
                 </a>
               </div>
             </div>
 
-            {/* Option 2: TWS Twin Pack (Recommended) */}
-            <div className="relative flex flex-col justify-between rounded-2xl border-2 border-accent bg-card/60 p-8 md:p-10 shadow-[0_0_40px_oklch(0.72_0.19_190_/_0.15)]">
-              <div className="absolute -top-3.5 right-8">
-                <span className="flex items-center gap-1 rounded-full bg-accent px-3.5 py-1 text-[11px] font-bold tracking-wider text-background uppercase shadow">
-                  <Sparkles className="h-3 w-3" />
-                  Best Value • Save Rs. 1,000
+            {/* Option 2: TWS Twin Pack */}
+            <div className="relative flex flex-col justify-between rounded-2xl border border-accent/40 bg-card/60 p-8 shadow-sm">
+              <div className="absolute -top-3 right-6">
+                <span className="rounded-full bg-accent px-3 py-0.5 text-[10px] font-bold tracking-wider text-background uppercase">
+                  Save Rs. 1,000
                 </span>
               </div>
 
               <div>
-                <span className="rounded bg-accent/20 px-3 py-1 text-xs font-mono tracking-wider text-accent uppercase font-medium">
-                  TWS Stereo Twin Pack
+                <span className="rounded bg-accent/15 px-2.5 py-1 text-[11px] font-mono tracking-wider text-accent uppercase font-medium">
+                  TWS Twin Pack
                 </span>
                 <h3 className="mt-4 text-2xl font-semibold">2x Deal Drip 15W (Pair)</h3>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Two synchronized speakers for true 360° Left/Right wireless stereo & dual charging.
+                  Two synchronized speakers for true 360° Left/Right wireless stereo.
                 </p>
 
-                <div className="mt-6 flex items-baseline gap-3">
-                  <span className="text-4xl font-bold font-display text-spectrum">Rs. 6,000</span>
+                <div className="mt-6 flex items-baseline gap-2.5">
+                  <span className="text-3xl font-bold font-display text-spectrum">Rs. 6,000</span>
                   <span className="text-xs text-muted-foreground line-through">Rs. 7,000</span>
-                  <span className="rounded bg-chart-2/20 px-2 py-0.5 text-[11px] font-bold text-chart-2">
-                    SAVE RS. 1,000
-                  </span>
                 </div>
 
-                <ul className="mt-8 space-y-3 text-sm text-foreground">
-                  <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-accent" />
+                <ul className="mt-6 space-y-2.5 text-xs text-foreground">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-3.5 w-3.5 text-accent" />
                     <span className="font-medium">2x Deal Drip 15W Speakers</span>
                   </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-accent" />
-                    <span className="font-medium">360° True Wireless Stereo (L/R Channels)</span>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-3.5 w-3.5 text-accent" />
+                    <span>360° True Wireless Stereo (L/R)</span>
                   </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-accent" />
-                    <span>2x 15W Qi Fast Wireless Charging Pads</span>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-3.5 w-3.5 text-accent" />
+                    <span>2x 15W Qi Fast Charging Pads</span>
                   </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-accent" />
-                    <span>Synchronized Dual RGB Light Atmosphere</span>
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-accent" />
-                    <span>30W Combined Peak Room-Filling Audio</span>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-3.5 w-3.5 text-accent" />
+                    <span>Synchronized RGB Atmosphere</span>
                   </li>
                 </ul>
               </div>
 
-              <div className="mt-10 space-y-2">
+              <div className="mt-8 space-y-2">
                 <Link
                   href="/checkout?plan=duo"
-                  className="flex items-center justify-center gap-2 bg-foreground px-8 py-4 text-xs font-semibold tracking-[0.15em] text-background uppercase transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                  className="flex items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3.5 text-xs font-semibold tracking-wider text-background uppercase transition-transform hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <span>Order Twin Pack (Rs. 6,000)</span>
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
                 <a
                   href="https://www.daraz.com.np/products/-i1543733289-s12360955990.html"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block text-center text-[11px] text-muted-foreground underline hover:text-foreground"
+                  className="block text-center text-[11px] text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  or order via Daraz
+                  or buy via Daraz →
                 </a>
               </div>
             </div>
           </div>
 
-          {/* Guarantee Banner */}
-          <div className="mx-auto mt-12 flex max-w-md items-center justify-center gap-2 text-center text-xs text-muted-foreground">
-            <ShieldCheck className="h-4 w-4 text-chart-2" />
-            <span>Official Deal Drip Product • Daraz Verified Seller • Cash on Delivery</span>
+          {/* Minimal Guarantee Banner */}
+          <div className="mx-auto mt-10 flex max-w-md items-center justify-center gap-2 text-center text-xs text-muted-foreground">
+            <ShieldCheck className="h-4 w-4 text-accent" />
+            <span>Official Deal Drip Nepal • Cash on Delivery • Free Delivery</span>
           </div>
         </section>
 
-        <footer className="flex flex-col items-center justify-between gap-4 border-t border-border px-6 py-10 text-xs tracking-[0.2em] text-muted-foreground uppercase md:flex-row md:px-12">
-          <div className="flex items-center gap-3">
+        <footer className="flex flex-col items-center justify-between gap-4 border-t border-border px-6 py-8 text-xs tracking-widest text-muted-foreground uppercase md:flex-row md:px-12">
+          <div className="flex items-center gap-2.5">
             <Image
               src="/deal-drip-logo.png"
               alt="Deal Drip Logo"
-              width={24}
-              height={24}
-              className="h-6 w-6 object-contain"
+              width={20}
+              height={20}
+              className="h-5 w-5 object-contain"
             />
-            <span>Deal Drip — © 2026</span>
+            <span className="font-medium text-foreground">Deal Drip</span>
+            <span>— © 2026</span>
           </div>
           <span>All Rights Reserved</span>
         </footer>
@@ -482,10 +451,10 @@ function Feature({
   className?: string;
 }) {
   return (
-    <div className={`bg-background p-8 md:p-12 ${className}`}>
-      <p className="text-xs tracking-[0.3em] text-muted-foreground uppercase">{kicker}</p>
-      <h3 className="mt-5 text-xl font-semibold md:text-2xl">{title}</h3>
-      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{body}</p>
+    <div className={`bg-background p-6 md:p-8 ${className}`}>
+      <p className="text-xs font-mono tracking-widest text-muted-foreground uppercase">{kicker}</p>
+      <h3 className="mt-4 text-lg font-semibold text-foreground">{title}</h3>
+      <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{body}</p>
     </div>
   );
 }

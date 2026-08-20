@@ -58,6 +58,7 @@ export const metadata: Metadata = {
 };
 
 import { CartProvider } from "@/lib/cart-context";
+import { QueryProvider } from "@/providers/query-provider";
 import { Toaster } from "@/components/ui/sonner";
 
 export default function RootLayout({
@@ -68,10 +69,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${spaceGrotesk.variable} ${dmSans.variable}`}>
       <body className="bg-background text-foreground antialiased selection:bg-accent selection:text-accent-foreground">
-        <CartProvider>
-          {children}
-          <Toaster position="top-center" richColors />
-        </CartProvider>
+        <QueryProvider>
+          <CartProvider>
+            {children}
+            <Toaster position="top-center" richColors />
+          </CartProvider>
+        </QueryProvider>
       </body>
     </html>
   );

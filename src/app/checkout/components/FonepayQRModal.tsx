@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { QrCode, CheckCircle, Smartphone, AlertCircle, X } from "lucide-react";
+import { QrCode, CheckCircle, Smartphone, CreditCard, AlertCircle, X, ShieldCheck } from "lucide-react";
 
 interface FonepayQRModalProps {
   isOpen: boolean;
@@ -42,9 +42,9 @@ export function FonepayQRModal({
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
             <QrCode className="h-6 w-6" />
           </div>
-          <h2 className="mt-3 text-xl font-bold">Scan with Any Banking App</h2>
+          <h2 className="mt-3 text-xl font-bold">Fonepay Unified Gateway</h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Fonepay Dynamic QR • Global IME, NIC Asia, Nabil, eSewa & 50+ Banks
+            Mobile Banking (50+ Banks) • Visa / MasterCard • SCT
           </p>
         </div>
 
@@ -105,15 +105,19 @@ export function FonepayQRModal({
           </div>
         </div>
 
-        {/* Steps */}
+        {/* Steps & Supported Methods */}
         <div className="mt-4 space-y-2 text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
-            <Smartphone className="h-4 w-4 text-accent" />
-            <span>Open your mobile banking app &amp; tap &quot;Scan to Pay&quot;</span>
+            <Smartphone className="h-4 w-4 text-accent shrink-0" />
+            <span>Scan with Global IME, NIC Asia, Nabil, Prabhu &amp; all mobile banking apps</span>
           </div>
           <div className="flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 text-chart-2" />
-            <span>Amount is pre-filled. Confirm payment on your screen.</span>
+            <CreditCard className="h-4 w-4 text-chart-2 shrink-0" />
+            <span>Visa, MasterCard &amp; SCT card payments supported via unified gateway</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-chart-2 shrink-0" />
+            <span>Amount is pre-filled. Confirm payment to complete order.</span>
           </div>
         </div>
 
@@ -126,7 +130,7 @@ export function FonepayQRModal({
           {verifying ? (
             <>
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
-              <span>Verifying Bank Transaction...</span>
+              <span>Verifying Gateway Transaction...</span>
             </>
           ) : (
             <>
@@ -139,3 +143,4 @@ export function FonepayQRModal({
     </div>
   );
 }
+

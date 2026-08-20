@@ -7,22 +7,15 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import {
   RotateCcw,
   Sparkles,
-  Zap,
-  Clock,
-  Radio,
-  Eye,
-  Sun,
-  Moon,
   Maximize2,
   Minimize2,
   Image as ImageIcon,
   HelpCircle,
   Home,
-  Palette,
-  Check,
+  Clock,
+  Zap,
+  Radio,
 } from "lucide-react";
-
-type LightingMode = "spectrum" | "studio" | "bright";
 
 interface RenderProfile {
   antialias: boolean;
@@ -69,7 +62,7 @@ function createRenderProfile(): RenderProfile {
     anisotropy: isLowPower ? 1 : isMobile ? 2 : 8,
     isMobile,
     isLowPower,
-    maxFps: isLowPower ? 24 : isMobile ? 30 : 60,
+    maxFps: 60,
     modelUrl: isMobile || isLowPower
       ? "/speaker-mobile.glb"
       : "/speaker-optimized.glb",
@@ -2234,12 +2227,10 @@ export function ModelViewer3D() {
       ? true
       : !window.matchMedia("(prefers-reduced-motion: reduce)").matches
   );
-  const [lightingMode, setLightingMode] = useState<LightingMode>("spectrum");
   const [selectedRgb, setSelectedRgb] = useState<RgbColorOption>(RGB_COLOR_OPTIONS[0]!);
   const [showRoomBackdrop, setShowRoomBackdrop] = useState(true);
   const [activeHotspot, setActiveHotspot] = useState<string>("overview");
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isColorPanelOpen, setIsColorPanelOpen] = useState(false);
   const [modelError, setModelError] = useState<string | null>(null);
 
   // Synchronous Ref for render loop & GPU shader uniforms
@@ -3045,26 +3036,22 @@ export function ModelViewer3D() {
     }
   }, [autoRotate]);
 
-  // Handle Lighting Mode Updates
+  // Handle Lighting Updates based on backdrop
   useEffect(() => {
     if (!lightsRef.current) return;
     const { ambient, dirLight1, dirLight2 } = lightsRef.current;
 
-    if (lightingMode === "spectrum") {
-      ambient.intensity = 1.0;
-      dirLight1.intensity = 2.2;
-      dirLight2.intensity = 1.2;
-    } else if (lightingMode === "studio") {
+    if (showRoomBackdrop) {
+      ambient.intensity = 1.1;
+      dirLight1.intensity = 2.4;
+      dirLight2.intensity = 1.3;
+    } else {
       ambient.intensity = 1.3;
       dirLight1.intensity = 2.6;
-      dirLight2.intensity = 1.6;
-    } else if (lightingMode === "bright") {
-      ambient.intensity = 1.8;
-      dirLight1.intensity = 3.2;
-      dirLight2.intensity = 2.2;
+      dirLight2.intensity = 1.5;
     }
     requestRenderRef.current();
-  }, [lightingMode]);
+  }, [showRoomBackdrop]);
 
   // Select Hotspot
   const handleSelectHotspot = useCallback((spot: Hotspot) => {
@@ -3097,33 +3084,31 @@ export function ModelViewer3D() {
   return (
     <section
       id="3d-studio"
-      className="relative overflow-hidden border-t border-border bg-background px-3 py-10 sm:px-6 sm:py-16 md:px-12 md:py-24"
+      className="relative overflow-hidden border-t border-border bg-background px-4 py-16 md:px-12 md:py-24"
     >
       <div className="relative mx-auto max-w-7xl">
         {/* Section Header */}
-        <div className="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
-            <div className="inline-flex items-center gap-2 border border-border bg-secondary/40 px-3 py-1 text-xs font-medium tracking-[0.25em] text-muted-foreground uppercase backdrop-blur-md">
-              <Sparkles className="h-3.5 w-3.5 text-accent animate-spin" />
-              Real-Time 3D Studio &amp; Top RGB Ring
-            </div>
-            <h2 className="mt-3 text-2xl font-semibold sm:mt-4 sm:text-4xl md:text-5xl lg:text-6xl">
-              Inspect in <span className="text-spectrum">360° 3D &amp; RGB Ring</span>.
+            <p className="text-xs font-mono tracking-[0.25em] text-muted-foreground uppercase">
+              3D Visualizer
+            </p>
+            <h2 className="mt-2 text-3xl font-semibold sm:text-4xl md:text-5xl">
+              Inspect in <span className="text-spectrum">360°</span>
             </h2>
           </div>
-          <p className="max-w-md text-xs leading-relaxed text-muted-foreground sm:text-sm md:text-base">
-            Rotate 360°, zoom in, and customize the color of the ambient light ring all around the
-            speaker in real time.
+          <p className="max-w-md text-xs leading-relaxed text-muted-foreground sm:text-sm">
+            Drag to orbit, scroll to zoom, and test ambient light colors in real time.
           </p>
         </div>
 
         {/* 3D Studio Stage Container */}
         <div
           ref={containerRef}
-          className={`group relative mt-6 overflow-hidden rounded-2xl border border-border bg-card/40 transition-all duration-500 sm:mt-10 sm:rounded-3xl sm:backdrop-blur-md ${
+          className={`group relative mt-8 overflow-hidden rounded-2xl border border-border bg-card/30 transition-all duration-500 md:rounded-3xl ${
             isFullscreen
               ? "h-screen w-screen rounded-none border-none"
-              : "h-[72svh] min-h-[500px] max-h-[620px] sm:h-[620px] sm:max-h-none md:h-[720px]"
+              : "h-[65svh] min-h-[480px] max-h-[680px] md:h-[680px]"
           }`}
         >
           {/* Photorealistic Centered Bedside Room Environment Backdrop */}
@@ -3136,14 +3121,13 @@ export function ModelViewer3D() {
               backgroundPosition: "center bottom",
             }}
           >
-            {/* Vignette Gradients for Natural Seamless Depth */}
             <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-background/50" />
-            <div className="absolute inset-0 bg-black/20" />
+            <div className="absolute inset-0 bg-black/25" />
           </div>
 
           {/* Minimal Studio Dark Backdrop */}
           <div
-            className={`absolute inset-0 bg-gradient-to-b from-card/90 via-background/95 to-background transition-opacity duration-700 pointer-events-none ${
+            className={`absolute inset-0 bg-gradient-to-b from-card/80 via-background/90 to-background transition-opacity duration-700 pointer-events-none ${
               !showRoomBackdrop ? "opacity-100" : "opacity-0"
             }`}
           >
@@ -3159,281 +3143,133 @@ export function ModelViewer3D() {
 
           {/* Loading Indicator */}
           {loading && (
-            <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-background/90 sm:backdrop-blur-md">
-              <div className="relative flex h-20 w-20 items-center justify-center">
+            <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-background/90 backdrop-blur-sm">
+              <div className="relative flex h-14 w-14 items-center justify-center">
                 <div className="absolute inset-0 rounded-full border-2 border-border" />
                 <div
-                  className="absolute inset-0 rounded-full border-2 border-accent border-t-transparent animate-spin"
+                  className="absolute inset-0 rounded-full border-2 border-foreground border-t-transparent animate-spin"
                   style={{ animationDuration: "1s" }}
                 />
-                <Sparkles className="h-6 w-6 text-accent animate-pulse" />
               </div>
-              <p className="mt-6 font-mono text-sm font-semibold tracking-wider text-foreground uppercase">
-                Loading 3D Model... {loadProgress}%
+              <p className="mt-4 font-mono text-xs tracking-wider text-muted-foreground uppercase">
+                Loading 3D Studio... {loadProgress}%
               </p>
-              <div className="mt-3 h-1.5 w-48 overflow-hidden rounded-full bg-secondary">
-                <div
-                  className="h-full bg-accent transition-all duration-300"
-                  style={{ width: `${loadProgress}%` }}
-                />
-              </div>
             </div>
           )}
 
           {/* Error Display if GLB fails */}
           {modelError && (
             <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-background/90 p-6 text-center">
-              <HelpCircle className="h-10 w-10 text-destructive" />
-              <p className="mt-4 text-sm text-foreground">{modelError}</p>
+              <HelpCircle className="h-8 w-8 text-destructive" />
+              <p className="mt-3 text-xs text-foreground">{modelError}</p>
             </div>
           )}
 
-          {/* Top Interactive Controls Toolbar */}
-          <div className="pointer-events-none absolute top-2 right-2 left-2 z-20 flex items-center justify-end gap-2 sm:top-4 sm:right-4 sm:left-4 lg:top-6 lg:right-6 lg:left-6 lg:justify-between">
-            {/* Gesture Helper Badge */}
-            <div className="pointer-events-auto hidden items-center gap-2 rounded-full border border-border/80 bg-background/85 px-3.5 py-1.5 text-xs text-muted-foreground shadow-sm backdrop-blur-md lg:flex">
-              <Eye className="h-3.5 w-3.5 text-accent" />
-              <span>Drag to orbit • Scroll to zoom</span>
+          {/* Top Controls Bar */}
+          <div className="pointer-events-none absolute top-3 right-3 left-3 z-20 flex items-center justify-between gap-2 sm:top-4 sm:right-4 sm:left-4">
+            {/* Minimal Color Swatches Bar */}
+            <div className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-border/60 bg-background/80 p-1.5 shadow-sm backdrop-blur-md">
+              {RGB_COLOR_OPTIONS.map((c) => {
+                const isSelected = selectedRgb.id === c.id;
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => setSelectedRgb(c)}
+                    title={`Color: ${c.name}`}
+                    className={`relative h-6 w-6 rounded-full transition-all duration-200 cursor-pointer ${
+                      isSelected
+                        ? "scale-110 ring-2 ring-foreground"
+                        : "opacity-75 hover:opacity-100 hover:scale-105"
+                    }`}
+                    style={{
+                      background: c.isRainbow
+                        ? "linear-gradient(135deg, #00f0ff, #b829ff, #00ff88)"
+                        : c.hex,
+                    }}
+                  />
+                );
+              })}
             </div>
 
-            {/* Studio Tools Button Group */}
-            <div className="pointer-events-auto flex max-w-full flex-nowrap items-center gap-1 overflow-x-auto rounded-full border border-border/80 bg-background/90 p-1 shadow-sm sm:gap-1.5 sm:backdrop-blur-md">
-              {/* Room Background Toggle Button */}
+            {/* Utility Actions */}
+            <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-border/60 bg-background/80 p-1 shadow-sm backdrop-blur-md">
+              {/* Scene Backdrop Toggle */}
               <button
                 onClick={() => setShowRoomBackdrop((v) => !v)}
-                title={showRoomBackdrop ? "Switch to Minimal Studio" : "Switch to Bedside Room Scene"}
-                className={`flex shrink-0 items-center gap-1.5 rounded-full p-2 text-xs font-medium tracking-wider uppercase transition-all md:px-3 md:py-1.5 ${
+                title={showRoomBackdrop ? "Switch to Dark Studio" : "Switch to Room Scene"}
+                className={`rounded-full p-2 text-xs transition-all ${
                   showRoomBackdrop
-                    ? "bg-accent text-accent-foreground shadow"
-                    : "bg-secondary text-foreground hover:bg-secondary/80"
+                    ? "bg-foreground text-background"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {showRoomBackdrop ? (
-                  <>
-                    <Home className="h-3.5 w-3.5" />
-                    <span className="hidden md:inline">Bedside Scene</span>
-                  </>
+                  <Home className="h-3.5 w-3.5" />
                 ) : (
-                  <>
-                    <ImageIcon className="h-3.5 w-3.5" />
-                    <span className="hidden md:inline">Studio Dark</span>
-                  </>
+                  <ImageIcon className="h-3.5 w-3.5" />
                 )}
               </button>
-
-              <button
-                onClick={() => setIsColorPanelOpen((value) => !value)}
-                title="RGB ring colors"
-                aria-controls="rgb-color-panel"
-                aria-expanded={isColorPanelOpen}
-                className={`shrink-0 rounded-full p-2 transition-all sm:hidden ${
-                  isColorPanelOpen
-                    ? "bg-foreground text-background"
-                    : "text-muted-foreground"
-                }`}
-              >
-                <Palette className="h-4 w-4" />
-              </button>
-
-              <div className="h-4 w-px bg-border my-auto mx-0.5" />
-
-              {/* Lighting Preset Switcher */}
-              <button
-                onClick={() => setLightingMode("spectrum")}
-                title="Spectrum Lighting"
-                className={`rounded-full p-2 text-xs transition-all ${
-                  lightingMode === "spectrum"
-                    ? "bg-foreground text-background shadow"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Sparkles className="h-4 w-4 text-accent" />
-              </button>
-
-              <button
-                onClick={() => setLightingMode("studio")}
-                title="Studio Lighting"
-                className={`rounded-full p-2 text-xs transition-all ${
-                  lightingMode === "studio"
-                    ? "bg-foreground text-background shadow"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Moon className="h-4 w-4" />
-              </button>
-
-              <button
-                onClick={() => setLightingMode("bright")}
-                title="Bright Daylight Mode"
-                className={`rounded-full p-2 text-xs transition-all ${
-                  lightingMode === "bright"
-                    ? "bg-foreground text-background shadow"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Sun className="h-4 w-4" />
-              </button>
-
-              <div className="h-4 w-px bg-border my-auto mx-0.5" />
 
               {/* Auto-Rotate Switch */}
               <button
                 onClick={() => setAutoRotate((v) => !v)}
                 title={autoRotate ? "Pause Auto-Rotate" : "Start Auto-Rotate"}
-                className={`shrink-0 rounded-full px-2.5 py-1.5 text-[11px] font-medium tracking-wider uppercase transition-all sm:px-3 sm:text-xs ${
+                className={`rounded-full p-2 text-xs transition-all ${
                   autoRotate
-                    ? "bg-secondary text-foreground"
+                    ? "bg-foreground text-background"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <span className="hidden sm:inline">
-                  {autoRotate ? "Spin: ON" : "Spin: OFF"}
-                </span>
-                <span className="sm:hidden">{autoRotate ? "On" : "Off"}</span>
+                <Sparkles className="h-3.5 w-3.5" />
               </button>
 
               {/* Reset View */}
               <button
                 onClick={handleResetView}
                 title="Reset Camera View"
-                className="rounded-full p-2 text-muted-foreground transition-all hover:bg-secondary hover:text-foreground"
+                className="rounded-full p-2 text-muted-foreground transition-all hover:text-foreground"
               >
-                <RotateCcw className="h-4 w-4" />
+                <RotateCcw className="h-3.5 w-3.5" />
               </button>
 
               {/* Fullscreen */}
               <button
                 onClick={toggleFullscreen}
                 title={isFullscreen ? "Exit Fullscreen" : "Fullscreen View"}
-                className="hidden sm:inline-flex rounded-full p-2 text-muted-foreground transition-all hover:bg-secondary hover:text-foreground"
+                className="hidden sm:inline-flex rounded-full p-2 text-muted-foreground transition-all hover:text-foreground"
               >
-                {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
               </button>
             </div>
           </div>
 
-          {/* Floating RGB Ring Color Controller */}
-          <div
-            id="rgb-color-panel"
-            className={`pointer-events-none absolute top-14 left-2 z-20 flex-col gap-2 sm:top-20 sm:left-4 sm:flex lg:top-24 lg:left-6 ${
-              isColorPanelOpen ? "flex" : "hidden"
-            }`}
-          >
-            <div className="pointer-events-auto flex flex-col gap-2.5 rounded-2xl border border-border/80 bg-background/95 p-3 shadow-2xl sm:p-3.5 sm:backdrop-blur-md">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-foreground uppercase">
-                  <Palette className="h-3.5 w-3.5 text-accent" />
-                  <span>360° RGB Light Ring</span>
-                </div>
-                <span
-                  className="h-2 w-2 rounded-full animate-ping"
-                  style={{
-                    backgroundColor: selectedRgb.isRainbow ? "#00f0ff" : selectedRgb.hex,
-                  }}
-                />
-              </div>
-
-              {/* 8 Color Swatches */}
-              <div className="grid grid-cols-4 gap-2">
-                {RGB_COLOR_OPTIONS.map((c) => {
-                  const isSelected = selectedRgb.id === c.id;
-                  return (
-                    <button
-                      key={c.id}
-                      onClick={() => setSelectedRgb(c)}
-                      title={c.name}
-                      className={`group relative flex h-7 w-7 cursor-pointer items-center justify-center rounded-full transition-all duration-300 sm:h-8 sm:w-8 ${
-                        isSelected
-                          ? "scale-110 ring-2 ring-foreground shadow-[0_0_16px_currentColor]"
-                          : "hover:scale-105 opacity-75 hover:opacity-100"
-                      }`}
-                      style={{
-                        background: c.isRainbow
-                          ? "linear-gradient(135deg, #00f0ff, #b829ff, #00ff88)"
-                          : c.hex,
-                        boxShadow: isSelected
-                          ? `0 0 16px ${c.hex}`
-                          : "0 2px 6px rgba(0,0,0,0.5)",
-                      }}
-                    >
-                      {isSelected && (
-                        <Check className="h-4 w-4 text-black drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="border-t border-border/50 pt-2 text-[11px] font-mono text-muted-foreground">
-                Ring Color: <span className="font-semibold text-foreground">{selectedRgb.name}</span>
-              </div>
-            </div>
-          </div>
-
           {/* Bottom Hotspots Inspection Bar */}
-          <div className="absolute right-2 bottom-2 left-2 z-20 flex flex-col gap-2 sm:right-6 sm:bottom-6 sm:left-6 sm:gap-3">
-            <div className="-mx-1 flex flex-nowrap items-center justify-start gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 sm:pb-0">
+          <div className="absolute right-3 bottom-3 left-3 z-20 flex flex-col items-center gap-2 sm:right-6 sm:bottom-6 sm:left-6">
+            <div className="flex flex-wrap items-center justify-center gap-1.5 rounded-full border border-border/60 bg-background/80 p-1 shadow-sm backdrop-blur-md">
               {HOTSPOTS.map((spot) => {
-                const Icon = spot.icon;
                 const isActive = activeHotspot === spot.id;
                 return (
                   <button
                     key={spot.id}
                     onClick={() => handleSelectHotspot(spot)}
-                    className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-2 text-[10px] font-medium tracking-wider uppercase transition-all sm:gap-2 sm:px-4 sm:text-xs sm:backdrop-blur-md ${
+                    className={`rounded-full px-3 py-1 text-[11px] font-medium tracking-wider uppercase transition-all cursor-pointer ${
                       isActive
-                        ? "border-accent bg-accent/20 text-foreground shadow-[0_0_20px_oklch(0.72_0.19_190_/_0.25)] scale-105"
-                        : "border-border/80 bg-background/80 text-muted-foreground hover:border-border hover:text-foreground"
+                        ? "bg-foreground text-background shadow"
+                        : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
-                    <Icon className={`h-3.5 w-3.5 ${isActive ? "text-accent" : ""}`} />
-                    <span>{spot.name}</span>
+                    {spot.name}
                   </button>
                 );
               })}
             </div>
 
-            {/* Active Hotspot Info Card */}
+            {/* Active Hotspot Caption */}
             {activeHotspot && (
-              <div className="mx-auto max-w-[calc(100vw-2rem)] rounded-xl border border-border/80 bg-background/95 p-2.5 text-center shadow-lg sm:max-w-md sm:p-3 sm:backdrop-blur-md">
-                <p className="text-xs font-medium text-foreground">
-                  {HOTSPOTS.find((h) => h.id === activeHotspot)?.description}
-                </p>
-              </div>
+              <p className="max-w-md rounded-full border border-border/40 bg-background/90 px-3.5 py-1 text-center text-[11px] text-muted-foreground backdrop-blur-md">
+                {HOTSPOTS.find((h) => h.id === activeHotspot)?.description}
+              </p>
             )}
-          </div>
-        </div>
-
-        {/* Feature Points Under 3D Studio */}
-        <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-3 sm:gap-4">
-          <div className="rounded-xl border border-border bg-card/40 p-5">
-            <div className="flex items-center gap-2 text-accent">
-              <Zap className="h-4 w-4" />
-              <h4 className="text-sm font-semibold">15W Qi Fast Induction Pad</h4>
-            </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Direct top-surface alignment charges iPhone & Android devices at max Qi speeds.
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-border bg-card/40 p-5">
-            <div className="flex items-center gap-2 text-chart-2">
-              <Clock className="h-4 w-4" />
-              <h4 className="text-sm font-semibold">Smart LED Clock & Alarms</h4>
-            </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Curved crystal front face delivers crystal-clear 12/24hr time and dual wake timers.
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-border bg-card/40 p-5">
-            <div className="flex items-center gap-2 text-chart-3">
-              <Radio className="h-4 w-4" />
-              <h4 className="text-sm font-semibold">TWS 360° Acoustic Mesh</h4>
-            </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Acoustic fabric grill lets room-filling sound resonate freely with zero distortion.
-            </p>
           </div>
         </div>
       </div>

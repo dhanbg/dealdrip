@@ -18,7 +18,7 @@ export function TwsShowcase() {
   const [isTwsActive, setIsTwsActive] = useState(true);
 
   return (
-    <section className="relative overflow-hidden border-t border-border bg-background px-6 py-24 md:px-12 md:py-32">
+    <section className="hidden md:block relative overflow-hidden border-t border-border bg-background px-6 py-24 md:px-12 md:py-32">
       {/* Decorative ambient background glows */}
       <div
         className="pointer-events-none absolute -top-40 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full opacity-20 blur-3xl transition-all duration-700"
@@ -31,20 +31,17 @@ export function TwsShowcase() {
 
       <div className="relative mx-auto max-w-7xl">
         {/* Header */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
-            <div className="inline-flex items-center gap-2 border border-border bg-secondary/40 px-3 py-1 text-xs font-medium tracking-[0.25em] text-muted-foreground uppercase backdrop-blur-md">
-              <Radio className="h-3.5 w-3.5 text-accent animate-pulse" />
+            <p className="text-xs font-mono tracking-[0.25em] text-muted-foreground uppercase">
               True Wireless Stereo
-            </div>
-            <h2 className="mt-4 text-3xl font-semibold md:text-5xl lg:text-6xl">
-              Double the units.{" "}
-              <span className="text-spectrum">360° dual stereo</span>.
+            </p>
+            <h2 className="mt-2 text-3xl font-semibold md:text-5xl">
+              Dual speaker <span className="text-spectrum">360° sound</span>.
             </h2>
           </div>
-          <p className="max-w-md text-sm leading-relaxed text-muted-foreground md:text-base">
-            Pair two Deal Drip speakers wirelessly with one tap. Enjoy discrete Left and
-            Right channel separation for a cinema-grade bedside soundstage.
+          <p className="max-w-md text-xs leading-relaxed text-muted-foreground sm:text-sm">
+            Pair two Deal Drip speakers wirelessly for true Left &amp; Right channel separation.
           </p>
         </div>
 
