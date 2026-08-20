@@ -91,7 +91,7 @@ export const DEFAULT_CHECKOUT_VALUES: CheckoutFormValues = {
   customCity: "",
   address: "",
   notes: "",
-  paymentMethod: "cod",
+  paymentMethod: "esewa",
   bankingSubtype: "qr",
   cardNumber: "",
   cardExpiry: "",

@@ -446,7 +446,91 @@ function CheckoutContent() {
                 </div>
 
                 <div className="mt-6 space-y-3">
-                  {/* 1. Cash on Delivery (COD) */}
+                  {/* 1. eSewa Mobile Wallet */}
+                  <div
+                    onClick={() => setValue("paymentMethod", "esewa", { shouldValidate: true })}
+                    className={`cursor-pointer rounded-2xl border p-4 transition-all ${
+                      selectedPaymentMethod === "esewa"
+                        ? "border-accent bg-accent/10 shadow-[0_0_20px_oklch(0.72_0.19_190_/_0.15)]"
+                        : "border-border bg-background hover:border-border/80"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+                            selectedPaymentMethod === "esewa"
+                              ? "border-accent bg-accent text-background"
+                              : "border-muted-foreground"
+                          }`}
+                        >
+                          {selectedPaymentMethod === "esewa" && (
+                            <Check className="h-3 w-3 stroke-[3]" />
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Image
+                            src="/esewa-logo.png"
+                            alt="eSewa"
+                            width={32}
+                            height={32}
+                            className="h-8 w-8 shrink-0 rounded-full object-contain shadow-sm"
+                          />
+                          <span className="text-sm font-semibold">eSewa Mobile Wallet</span>
+                        </div>
+                      </div>
+                      <span className="font-mono text-xs font-bold text-[#60BB46]">
+                        eSewa
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 2. Unified Gateway: Local Banks & Visa / MasterCard (NPX) */}
+                  <div
+                    onClick={() =>
+                      setValue("paymentMethod", "banking_card", { shouldValidate: true })
+                    }
+                    className={`cursor-pointer rounded-2xl border p-4 transition-all ${
+                      selectedPaymentMethod === "banking_card"
+                        ? "border-accent bg-accent/10 shadow-[0_0_20px_oklch(0.72_0.19_190_/_0.15)]"
+                        : "border-border bg-background hover:border-border/80"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+                            selectedPaymentMethod === "banking_card"
+                              ? "border-accent bg-accent text-background"
+                              : "border-muted-foreground"
+                          }`}
+                        >
+                          {selectedPaymentMethod === "banking_card" && (
+                            <Check className="h-3 w-3 stroke-[3]" />
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-card border border-border/80 p-1 shadow-sm">
+                            <Image
+                              src="/npx-logo.png"
+                              alt="NPX"
+                              width={32}
+                              height={32}
+                              className="h-full w-full object-contain"
+                            />
+                          </div>
+                          <span className="text-sm font-semibold">
+                            Local Banks &amp; Visa / MasterCard
+                          </span>
+                        </div>
+                      </div>
+                      <span className="rounded bg-cyan-500/15 px-2.5 py-0.5 text-[10px] font-bold text-cyan-400">
+                        NPX
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 3. Cash on Delivery (COD) */}
                   <div
                     onClick={() => setValue("paymentMethod", "cod", { shouldValidate: true })}
                     className={`cursor-pointer rounded-2xl border p-4 transition-all ${
@@ -475,87 +559,8 @@ function CheckoutContent() {
                           <span className="text-sm font-semibold">Cash on Delivery (COD)</span>
                         </div>
                       </div>
-                      <span className="rounded bg-chart-2/20 px-2.5 py-1 text-[11px] font-bold text-chart-2 uppercase">
-                        Most Popular
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* 2. eSewa Mobile Wallet */}
-                  <div
-                    onClick={() => setValue("paymentMethod", "esewa", { shouldValidate: true })}
-                    className={`cursor-pointer rounded-2xl border p-4 transition-all ${
-                      selectedPaymentMethod === "esewa"
-                        ? "border-accent bg-accent/10 shadow-[0_0_20px_oklch(0.72_0.19_190_/_0.15)]"
-                        : "border-border bg-background hover:border-border/80"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
-                            selectedPaymentMethod === "esewa"
-                              ? "border-accent bg-accent text-background"
-                              : "border-muted-foreground"
-                          }`}
-                        >
-                          {selectedPaymentMethod === "esewa" && (
-                            <Check className="h-3 w-3 stroke-[3]" />
-                          )}
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#60BB46] shadow-sm p-1.5 overflow-hidden">
-                            <svg viewBox="0 0 100 100" className="h-full w-full" fill="none">
-                              <path
-                                d="M50 18C32.33 18 18 32.33 18 50C18 67.67 32.33 82 50 82C64.6 82 76.9 72.1 80.6 58.5H41V47.5H81.8C81.9 46.3 82 45.1 82 44C82 29.6 70.4 18 50 18ZM50 30C60.2 30 68.6 37.3 70.5 47.5H29.5C31.4 37.3 39.8 30 50 30Z"
-                                fill="white"
-                              />
-                            </svg>
-                          </div>
-                          <span className="text-sm font-semibold">eSewa Mobile Wallet</span>
-                        </div>
-                      </div>
-                      <span className="font-mono text-xs font-bold text-[#60BB46]">
-                        eSewa
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* 3. Unified Gateway: Local Banks & Visa / MasterCard */}
-                  <div
-                    onClick={() =>
-                      setValue("paymentMethod", "banking_card", { shouldValidate: true })
-                    }
-                    className={`cursor-pointer rounded-2xl border p-4 transition-all ${
-                      selectedPaymentMethod === "banking_card"
-                        ? "border-accent bg-accent/10 shadow-[0_0_20px_oklch(0.72_0.19_190_/_0.15)]"
-                        : "border-border bg-background hover:border-border/80"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
-                            selectedPaymentMethod === "banking_card"
-                              ? "border-accent bg-accent text-background"
-                              : "border-muted-foreground"
-                          }`}
-                        >
-                          {selectedPaymentMethod === "banking_card" && (
-                            <Check className="h-3 w-3 stroke-[3]" />
-                          )}
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#E31837] shadow-sm text-white font-black text-xs">
-                            fp
-                          </div>
-                          <span className="text-sm font-semibold">
-                            Local Banks &amp; Visa / MasterCard
-                          </span>
-                        </div>
-                      </div>
-                      <span className="rounded bg-destructive/10 px-2 py-0.5 text-[10px] font-bold text-destructive">
-                        Fonepay
+                      <span className="font-mono text-xs text-muted-foreground">
+                        COD
                       </span>
                     </div>
                   </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { QrCode, CheckCircle, Smartphone, CreditCard, AlertCircle, X, ShieldCheck } from "lucide-react";
 
 interface FonepayQRModalProps {
@@ -39,19 +40,25 @@ export function FonepayQRModal({
         </button>
 
         <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
-            <QrCode className="h-6 w-6" />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary/80 p-2">
+            <Image
+              src="/npx-logo.png"
+              alt="NPX"
+              width={36}
+              height={36}
+              className="h-9 w-9 object-contain"
+            />
           </div>
-          <h2 className="mt-3 text-xl font-bold">Fonepay Unified Gateway</h2>
+          <h2 className="mt-3 text-xl font-bold">NPX Unified Gateway</h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Mobile Banking (50+ Banks) • Visa / MasterCard • SCT
+            Mobile Banking (50+ Banks) • Visa / MasterCard • ConnectIPS
           </p>
         </div>
 
         {/* Dynamic QR Display Box */}
         <div className="mt-6 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-background p-6">
           <div className="relative flex h-52 w-52 items-center justify-center rounded-xl bg-white p-3 shadow-inner">
-            {/* SVG Fonepay QR Code representation */}
+            {/* SVG NPX QR Code representation */}
             <svg
               className="h-full w-full"
               viewBox="0 0 100 100"
@@ -77,7 +84,7 @@ export function FonepayQRModal({
               <rect x="42" y="24" width="12" height="6" fill="black" />
               <rect x="12" y="42" width="6" height="12" fill="black" />
               <rect x="24" y="42" width="12" height="6" fill="black" />
-              <rect x="42" y="42" width="16" height="16" fill="#DC2626" />
+              <rect x="42" y="42" width="16" height="16" fill="#00BCD4" />
               <rect x="64" y="42" width="10" height="6" fill="black" />
               <rect x="80" y="42" width="8" height="12" fill="black" />
               <rect x="64" y="54" width="6" height="18" fill="black" />
@@ -88,8 +95,8 @@ export function FonepayQRModal({
               <rect x="76" y="76" width="12" height="12" fill="black" />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="rounded bg-destructive px-1.5 py-0.5 text-[9px] font-bold text-white shadow">
-                fonepay
+              <span className="rounded bg-[#00BCD4] px-1.5 py-0.5 text-[9px] font-bold text-white shadow">
+                NPX
               </span>
             </div>
           </div>

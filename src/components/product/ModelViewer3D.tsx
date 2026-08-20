@@ -39,36 +39,27 @@ type NavigatorWithPerformanceHints = Navigator & {
 
 function createRenderProfile(): RenderProfile {
   const hints = navigator as NavigatorWithPerformanceHints;
-  const deviceMemory = hints.deviceMemory ?? 4;
-  const processorCount = navigator.hardwareConcurrency ?? 4;
   const isMobile = window.matchMedia("(max-width: 820px), (pointer: coarse)").matches;
   const slowConnection = ["slow-2g", "2g"].includes(
     hints.connection?.effectiveType ?? ""
   );
-  const isLowPower =
-    hints.connection?.saveData === true ||
-    slowConnection ||
-    deviceMemory <= 2 ||
-    processorCount <= 2;
+  const isLowPower = hints.connection?.saveData === true || slowConnection;
 
+  // Use crisp native device pixel ratio (up to 2.0x for Retina/OLED mobile screens)
   const pixelRatio = isLowPower
-    ? 1
-    : isMobile
-      ? Math.min(window.devicePixelRatio, 1.25)
-      : Math.min(window.devicePixelRatio, 1.75);
+    ? 1.5
+    : Math.min(typeof window !== "undefined" ? window.devicePixelRatio : 1, 2.0);
 
   return {
-    antialias: !isMobile && !isLowPower,
-    anisotropy: isLowPower ? 1 : isMobile ? 2 : 8,
+    antialias: true,
+    anisotropy: 8,
     isMobile,
     isLowPower,
     maxFps: 60,
-    modelUrl: isMobile || isLowPower
-      ? "/speaker-mobile.glb"
-      : "/speaker-optimized.glb",
+    modelUrl: "/speaker-optimized.glb",
     pixelRatio,
-    shadows: !isMobile && !isLowPower,
-    textureScale: isMobile || isLowPower ? 0.5 : 1,
+    shadows: !isLowPower,
+    textureScale: 1,
   };
 }
 
@@ -3157,34 +3148,9 @@ export function ModelViewer3D() {
             </div>
           )}
 
-          {/* Top Controls Bar */}
-          <div className="pointer-events-none absolute top-3 right-3 left-3 z-20 flex items-center justify-between gap-2 sm:top-4 sm:right-4 sm:left-4">
-            {/* Minimal Color Swatches Bar */}
-            <div className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-border/60 bg-background/80 p-1.5 shadow-sm backdrop-blur-md">
-              {RGB_COLOR_OPTIONS.map((c) => {
-                const isSelected = selectedRgb.id === c.id;
-                return (
-                  <button
-                    key={c.id}
-                    onClick={() => setSelectedRgb(c)}
-                    title={`Color: ${c.name}`}
-                    className={`relative h-6 w-6 rounded-full transition-all duration-200 cursor-pointer ${
-                      isSelected
-                        ? "scale-110 ring-2 ring-foreground"
-                        : "opacity-75 hover:opacity-100 hover:scale-105"
-                    }`}
-                    style={{
-                      background: c.isRainbow
-                        ? "linear-gradient(135deg, #00f0ff, #b829ff, #00ff88)"
-                        : c.hex,
-                    }}
-                  />
-                );
-              })}
-            </div>
-
-            {/* Utility Actions */}
-            <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-border/60 bg-background/80 p-1 shadow-sm backdrop-blur-md">
+          {/* Top Controls Bar - Utility Actions */}
+          <div className="pointer-events-none absolute top-3 right-3 z-20 flex items-center gap-1 sm:top-4 sm:right-4">
+            <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-border/60 bg-background/85 p-1 shadow-sm backdrop-blur-md">
               {/* Scene Backdrop Toggle */}
               <button
                 onClick={() => setShowRoomBackdrop((v) => !v)}
@@ -3228,41 +3194,67 @@ export function ModelViewer3D() {
               <button
                 onClick={toggleFullscreen}
                 title={isFullscreen ? "Exit Fullscreen" : "Fullscreen View"}
-                className="hidden sm:inline-flex rounded-full p-2 text-muted-foreground transition-all hover:text-foreground"
+                className="inline-flex rounded-full p-2 text-muted-foreground transition-all hover:text-foreground"
               >
                 {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
               </button>
             </div>
           </div>
 
-          {/* Bottom Hotspots Inspection Bar */}
-          <div className="absolute right-3 bottom-3 left-3 z-20 flex flex-col items-center gap-2 sm:right-6 sm:bottom-6 sm:left-6">
-            <div className="flex flex-wrap items-center justify-center gap-1.5 rounded-full border border-border/60 bg-background/80 p-1 shadow-sm backdrop-blur-md">
-              {HOTSPOTS.map((spot) => {
-                const isActive = activeHotspot === spot.id;
+          {/* Bottom RGB Light Ring Color Swatches */}
+          <div className="absolute right-3 bottom-3 left-3 z-20 flex flex-col items-center gap-1 sm:right-6 sm:bottom-4 sm:left-6">
+            <div className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-border/60 bg-background/85 px-2.5 py-1.5 shadow-sm backdrop-blur-md">
+              {RGB_COLOR_OPTIONS.map((c) => {
+                const isSelected = selectedRgb.id === c.id;
                 return (
                   <button
-                    key={spot.id}
-                    onClick={() => handleSelectHotspot(spot)}
-                    className={`rounded-full px-3 py-1 text-[11px] font-medium tracking-wider uppercase transition-all cursor-pointer ${
-                      isActive
-                        ? "bg-foreground text-background shadow"
-                        : "text-muted-foreground hover:text-foreground"
+                    key={c.id}
+                    onClick={() => setSelectedRgb(c)}
+                    title={`Color: ${c.name}`}
+                    className={`relative h-6 w-6 rounded-full transition-all duration-200 cursor-pointer ${
+                      isSelected
+                        ? "scale-110 ring-2 ring-foreground"
+                        : "opacity-75 hover:opacity-100 hover:scale-105"
                     }`}
-                  >
-                    {spot.name}
-                  </button>
+                    style={{
+                      background: c.isRainbow
+                        ? "linear-gradient(135deg, #00f0ff, #b829ff, #00ff88)"
+                        : c.hex,
+                    }}
+                  />
                 );
               })}
             </div>
-
-            {/* Active Hotspot Caption */}
-            {activeHotspot && (
-              <p className="max-w-md rounded-full border border-border/40 bg-background/90 px-3.5 py-1 text-center text-[11px] text-muted-foreground backdrop-blur-md">
-                {HOTSPOTS.find((h) => h.id === activeHotspot)?.description}
-              </p>
-            )}
           </div>
+        </div>
+
+        {/* Hotspot Angle Selectors Outside the 3D Stage Border */}
+        <div className="mt-4 flex flex-col items-center gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-1.5">
+            {HOTSPOTS.map((spot) => {
+              const isActive = activeHotspot === spot.id;
+              return (
+                <button
+                  key={spot.id}
+                  onClick={() => handleSelectHotspot(spot)}
+                  className={`rounded-full border px-3.5 py-1.5 text-xs font-medium tracking-wider uppercase transition-all cursor-pointer ${
+                    isActive
+                      ? "border-foreground bg-foreground text-background shadow"
+                      : "border-border bg-card/60 text-muted-foreground hover:border-border/80 hover:text-foreground"
+                  }`}
+                >
+                  {spot.name}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Active Hotspot Caption */}
+          {activeHotspot && (
+            <p className="text-center text-xs text-muted-foreground">
+              {HOTSPOTS.find((h) => h.id === activeHotspot)?.description}
+            </p>
+          )}
         </div>
       </div>
     </section>

@@ -40,7 +40,7 @@ export function useCreateOrderMutation() {
       if (formData.paymentMethod === "esewa") {
         paymentLabel = "eSewa Mobile Wallet";
       } else if (formData.paymentMethod === "banking_card") {
-        paymentLabel = "Local Banks & Visa / MasterCard (Fonepay)";
+        paymentLabel = "Local Banks & Visa / MasterCard (NPX)";
       }
 
       const payload: BackendOrderPayload = {
