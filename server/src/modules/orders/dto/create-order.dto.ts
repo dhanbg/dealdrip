@@ -39,6 +39,11 @@ export class CartItemDto {
 }
 
 export class CreateOrderDto {
+  @ApiPropertyOptional({ example: 'usr_neon_12345', description: 'Neon Auth User ID' })
+  @IsOptional()
+  @IsString()
+  userId?: string;
+
   @ApiProperty({ example: 'Aarav Sharma' })
   @IsString()
   @IsNotEmpty()

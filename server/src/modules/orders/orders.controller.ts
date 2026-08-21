@@ -34,6 +34,14 @@ export class OrdersController {
     return ApiResponse.success(orders, 'Orders retrieved successfully');
   }
 
+  @Get('user/:userId')
+  @ApiOperation({ summary: 'List orders placed by a specific Neon Auth user' })
+  @ApiParam({ name: 'userId', example: 'usr_neon_12345' })
+  async getOrdersByUser(@Param('userId') userId: string) {
+    const orders = await this.ordersService.listOrdersByUser(userId);
+    return ApiResponse.success(orders, 'User orders retrieved successfully');
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get order and tracking details by Order ID' })
   @ApiParam({ name: 'id', example: 'DD-2026-10293' })

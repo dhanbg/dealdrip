@@ -39,6 +39,8 @@ import {
 } from "@/schemas/checkout.schema";
 import { useCreateOrderMutation } from "@/hooks/use-order-mutations";
 import { useValidateCouponMutation } from "@/hooks/use-coupon-mutations";
+import { useSession } from "@/lib/auth/client";
+import { UserNav } from "@/components/auth/UserNav";
 import { OrderSuccessView } from "./components/OrderSuccessView";
 import { FonepayQRModal } from "./components/FonepayQRModal";
 
@@ -89,6 +91,19 @@ function CheckoutContent() {
 
   const selectedPaymentMethod = watch("paymentMethod");
   const selectedCity = watch("city");
+  const { data: session } = useSession();
+
+  // Auto-fill customer details from Neon Auth session if available
+  useEffect(() => {
+    if (session?.user) {
+      if (session.user.name) {
+        setValue("fullName", session.user.name, { shouldValidate: true });
+      }
+      if (session.user.email) {
+        setValue("email", session.user.email, { shouldValidate: true });
+      }
+    }
+  }, [session, setValue]);
 
   // Sync plan from URL query parameter on mount
   useEffect(() => {
@@ -175,7 +190,9 @@ function CheckoutContent() {
             </span>
           </div>
 
-          <div className="w-24" />
+          <div className="flex items-center justify-end">
+            <UserNav />
+          </div>
         </div>
       </header>
 

@@ -1,12 +1,28 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ScrollSequence } from "@/components/product/ScrollSequence";
-import { ModelViewer3D } from "@/components/product/ModelViewer3D";
 import { TwsShowcase } from "@/components/product/TwsShowcase";
 import { Sparkles, ArrowRight, ShieldCheck, Check, Box, ShoppingBag } from "lucide-react";
+import { UserNav } from "@/components/auth/UserNav";
+
+const ModelViewer3D = dynamic(
+  () => import("@/components/product/ModelViewer3D").then((mod) => mod.ModelViewer3D),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex min-h-[500px] w-full items-center justify-center border-t border-border bg-background py-24">
+        <div className="flex flex-col items-center gap-3 text-muted-foreground animate-pulse">
+          <div className="h-8 w-8 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+          <p className="font-mono text-xs tracking-wider uppercase">Loading 3D Interactive Studio...</p>
+        </div>
+      </div>
+    ),
+  }
+);
 
 const JSON_LD = {
   "@context": "https://schema.org",
@@ -125,12 +141,13 @@ export default function Home() {
                   Deal Drip
                 </span>
               </div>
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-4 md:gap-6">
                 <nav className="hidden md:flex items-center gap-6 text-xs font-mono tracking-widest uppercase text-muted-foreground">
                   <a href="#3d-studio" className="hover:text-foreground transition-colors">3D</a>
                   <a href="#features" className="hover:text-foreground transition-colors">Features</a>
                   <a href="#specs" className="hover:text-foreground transition-colors">Specs</a>
                 </nav>
+                <UserNav />
                 <Link
                   href="/checkout?plan=single"
                   className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-xs font-semibold tracking-[0.15em] uppercase text-background transition-transform hover:scale-105 active:scale-95"

@@ -60,18 +60,38 @@ export function ScrollSequence({ progressRef, onReady }: Props) {
     let loaded = 0;
     const imgs: HTMLImageElement[] = [];
 
-    cfg.sheets.forEach((url, i) => {
+    // Staged loading: Load first 2 sheets immediately for instant hero rendering, then cascade remaining sheets
+    const loadSheet = (i: number) => {
+      if (cancelled || imgs[i] || i >= cfg.sheets.length) return;
       const img = new Image();
       img.decoding = "async";
-      img.src = url;
+      img.src = cfg.sheets[i];
       img.onload = () => {
         if (cancelled) return;
         loaded += 1;
         onReady?.(loaded, cfg.sheets.length);
         draw();
+        // Cascade load next sheet
+        if (i + 2 < cfg.sheets.length) {
+          loadSheet(i + 2);
+        }
+      };
+      img.onerror = () => {
+        if (cancelled) return;
+        // Continue loading remaining sheets even if one fails
+        if (i + 2 < cfg.sheets.length) {
+          loadSheet(i + 2);
+        }
       };
       imgs[i] = img;
-    });
+    };
+
+    // Start with the first two critical sheets
+    loadSheet(0);
+    if (cfg.sheets.length > 1) {
+      loadSheet(1);
+    }
+
     imagesRef.current = imgs;
 
     let raf = 0;

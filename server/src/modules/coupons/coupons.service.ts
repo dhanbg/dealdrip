@@ -1,7 +1,9 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { CouponResultDto } from './dto/validate-coupon.dto';
-import { PrismaService } from '../../prisma/prisma.service';
-import { DiscountType } from '@prisma/client';
+import { DatabaseService } from '../../database/database.service';
+import { DiscountType } from '../../database/schema/enums';
+import * as schema from '../../database/schema';
+import { eq } from 'drizzle-orm';
 
 interface CouponDefinition {
   code: string;
@@ -13,14 +15,14 @@ interface CouponDefinition {
 
 @Injectable()
 export class CouponsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly dbService: DatabaseService) {}
 
   private readonly fallbackCoupons: Map<string, CouponDefinition> = new Map([
     [
       'DEALDRIP10',
       {
         code: 'DEALDRIP10',
-        type: DiscountType.PERCENTAGE,
+        type: 'PERCENTAGE',
         value: 10,
         description: '10% VIP Launch Discount',
       },
@@ -29,7 +31,7 @@ export class CouponsService {
       'DRIP10',
       {
         code: 'DRIP10',
-        type: DiscountType.PERCENTAGE,
+        type: 'PERCENTAGE',
         value: 10,
         description: '10% Exclusive Deal Drip Discount',
       },
@@ -38,7 +40,7 @@ export class CouponsService {
       'NEPAL500',
       {
         code: 'NEPAL500',
-        type: DiscountType.FIXED,
+        type: 'FIXED',
         value: 500,
         description: 'Rs. 500 Launch Discount',
         minSubtotal: 3000,
@@ -48,7 +50,7 @@ export class CouponsService {
       'VIP20',
       {
         code: 'VIP20',
-        type: DiscountType.PERCENTAGE,
+        type: 'PERCENTAGE',
         value: 20,
         description: '20% Mega Promo Discount',
       },
@@ -65,12 +67,12 @@ export class CouponsService {
       minSubtotal?: number | null;
     } | null = null;
 
-    if (this.prisma.isConnected) {
+    if (this.dbService.isConnected) {
       try {
-        const dbCoupon = await this.prisma.coupon.findUnique({
-          where: { code: normalized },
+        const dbCoupon = await this.dbService.db.query.coupons.findFirst({
+          where: (c, { eq, and }) => and(eq(c.code, normalized), eq(c.isActive, true)),
         });
-        if (dbCoupon && dbCoupon.isActive) {
+        if (dbCoupon) {
           coupon = dbCoupon;
         }
       } catch (e) {
@@ -95,12 +97,12 @@ export class CouponsService {
     let discountPercent = 0;
     let discountAmount = 0;
 
-    if (coupon.type === DiscountType.PERCENTAGE) {
+    if (coupon.type === 'PERCENTAGE') {
       discountPercent = coupon.value;
       if (subtotal > 0) {
         discountAmount = Math.round((subtotal * discountPercent) / 100);
       }
-    } else if (coupon.type === DiscountType.FIXED) {
+    } else if (coupon.type === 'FIXED') {
       discountAmount = coupon.value;
       if (subtotal > 0) {
         discountPercent = Math.min(100, Math.round((discountAmount / subtotal) * 100));
@@ -117,12 +119,16 @@ export class CouponsService {
   }
 
   async listAvailableCoupons(): Promise<{ code: string; description: string }[]> {
-    if (this.prisma.isConnected) {
+    if (this.dbService.isConnected) {
       try {
-        const list = await this.prisma.coupon.findMany({
-          where: { isActive: true },
-          select: { code: true, description: true },
-        });
+        const list = await this.dbService.db
+          .select({
+            code: schema.coupons.code,
+            description: schema.coupons.description,
+          })
+          .from(schema.coupons)
+          .where(eq(schema.coupons.isActive, true));
+
         if (list.length > 0) return list;
       } catch (e) {
         // Fallback

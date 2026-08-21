@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ProductDetailDto, ProductPlanDto } from './dto/product.dto';
-import { PrismaService } from '../../prisma/prisma.service';
+import { DatabaseService } from '../../database/database.service';
 
 @Injectable()
 export class ProductsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly dbService: DatabaseService) {}
 
   private readonly fallbackPlans: ProductPlanDto[] = [
     {
@@ -45,11 +45,11 @@ export class ProductsService {
   };
 
   async getProduct(): Promise<ProductDetailDto> {
-    if (this.prisma.isConnected) {
+    if (this.dbService.isConnected) {
       try {
-        const product = await this.prisma.product.findFirst({
-          where: { slug: 'deal-drip-speaker' },
-          include: { plans: true },
+        const product = await this.dbService.db.query.products.findFirst({
+          where: (p, { eq }) => eq(p.slug, 'deal-drip-speaker'),
+          with: { plans: true },
         });
 
         if (product) {

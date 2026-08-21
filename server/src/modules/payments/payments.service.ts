@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PaymentMethod, PaymentMethodInfo, VerifyPaymentDto } from './dto/payment.dto';
-import { PrismaService } from '../../prisma/prisma.service';
+import { DatabaseService } from '../../database/database.service';
+import * as schema from '../../database/schema';
 
 @Injectable()
 export class PaymentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly dbService: DatabaseService) {}
 
   private readonly methods: PaymentMethodInfo[] = [
     {
@@ -36,18 +37,17 @@ export class PaymentsService {
       dto.transactionId ||
       `TXN-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    if (this.prisma.isConnected) {
+    if (this.dbService.isConnected) {
       try {
-        await this.prisma.paymentTransaction.create({
-          data: {
-            orderId: dto.orderId,
-            method: dto.method,
-            subtype: dto.subtype,
-            amount: dto.amount,
-            transactionId,
-            status: 'VERIFIED',
-            senderIdentifier: dto.senderIdentifier,
-          },
+        await this.dbService.db.insert(schema.paymentTransactions).values({
+          orderId: dto.orderId,
+          method: dto.method,
+          subtype: dto.subtype || null,
+          amount: dto.amount,
+          transactionId,
+          status: 'VERIFIED',
+          senderIdentifier: dto.senderIdentifier || null,
+          verifiedAt: new Date(),
         });
       } catch (e) {
         // Fallback

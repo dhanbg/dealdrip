@@ -4,13 +4,13 @@ import "@/styles.css";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
-  variable: "--font-display",
+  variable: "--font-space-grotesk",
   display: "swap",
 });
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
-  variable: "--font-sans",
+  variable: "--font-dm-sans",
   display: "swap",
 });
 
@@ -59,6 +59,7 @@ export const metadata: Metadata = {
 
 import { CartProvider } from "@/lib/cart-context";
 import { QueryProvider } from "@/providers/query-provider";
+import { AuthProvider } from "@/providers/auth-provider";
 import { Toaster } from "@/components/ui/sonner";
 
 export default function RootLayout({
@@ -70,10 +71,12 @@ export default function RootLayout({
     <html lang="en" className={`${spaceGrotesk.variable} ${dmSans.variable}`}>
       <body className="bg-background text-foreground antialiased selection:bg-accent selection:text-accent-foreground">
         <QueryProvider>
-          <CartProvider>
-            {children}
-            <Toaster position="top-center" richColors />
-          </CartProvider>
+          <AuthProvider>
+            <CartProvider>
+              {children}
+              <Toaster position="top-center" richColors />
+            </CartProvider>
+          </AuthProvider>
         </QueryProvider>
       </body>
     </html>

@@ -10,6 +10,7 @@ import { OrderDetails } from "@/app/checkout/components/OrderSuccessView";
 import { useCartStore, selectCartSummary } from "@/store/use-cart-store";
 import { useCheckoutStore } from "@/store/use-checkout-store";
 import { CheckoutFormValues } from "@/schemas/checkout.schema";
+import { useSession } from "@/lib/auth/client";
 import { toast } from "sonner";
 
 export interface CreateOrderMutationInput {
@@ -17,6 +18,7 @@ export interface CreateOrderMutationInput {
 }
 
 export function useCreateOrderMutation() {
+  const { data: session } = useSession();
   const setCompletedOrder = useCheckoutStore((s) => s.setCompletedOrder);
   const setShowFonepayModal = useCheckoutStore((s) => s.setShowFonepayModal);
 
@@ -44,6 +46,7 @@ export function useCreateOrderMutation() {
       }
 
       const payload: BackendOrderPayload = {
+        userId: session?.user?.id || undefined,
         customerName: formData.fullName,
         phone: formData.phone,
         email: formData.email || undefined,

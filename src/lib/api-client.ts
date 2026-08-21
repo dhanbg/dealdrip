@@ -6,7 +6,20 @@
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
+async function safeJsonParse<T = any>(res: Response): Promise<T | null> {
+  try {
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      return null;
+    }
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
 export interface BackendOrderPayload {
+  userId?: string;
   customerName: string;
   phone: string;
   email?: string;
@@ -94,16 +107,16 @@ export const dealDripApi = {
         body: JSON.stringify(payload),
       });
 
+      const json = await safeJsonParse(res);
+
       if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || `Server responded with ${res.status}`);
+        throw new Error(json?.message || `Server responded with ${res.status}`);
       }
 
-      const json = await res.json();
       return {
         success: true,
-        data: json.data,
-        message: json.message || 'Order placed successfully',
+        data: json?.data,
+        message: json?.message || 'Order placed successfully',
         isBackend: true,
       };
     } catch (err: any) {
@@ -165,11 +178,11 @@ export const dealDripApi = {
         body: JSON.stringify({ code, subtotal }),
       });
 
-      const json = await res.json();
-      if (!res.ok || !json.success) {
+      const json = await safeJsonParse(res);
+      if (!res.ok || !json?.success) {
         return {
           success: false,
-          message: Array.isArray(json.message) ? json.message.join(', ') : json.message || 'Invalid coupon code',
+          message: Array.isArray(json?.message) ? json.message.join(', ') : json?.message || 'Invalid coupon code',
         };
       }
 
@@ -224,8 +237,8 @@ export const dealDripApi = {
     try {
       const res = await fetch(`${API_BASE_URL}/products`);
       if (res.ok) {
-        const json = await res.json();
-        return json.data;
+        const json = await safeJsonParse(res);
+        return json?.data || null;
       }
       return null;
     } catch {
