@@ -48,10 +48,11 @@ export function CheckoutDialog() {
           Looking good<br />together.
         </h2>
         <div id="checkout-items">
-          {cartItems.map(({ product, quantity }) => (
-            <div key={product.id} className="checkout-row">
+          {cartItems.map(({ product, quantity, variantName, cartKey }) => (
+            <div key={cartKey} className="checkout-row">
               <span>
                 {quantity} × {product.name}
+                {variantName ? ` (${variantName})` : ''}
               </span>
               <span>{formatMoney(product.price * quantity)}</span>
             </div>

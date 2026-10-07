@@ -7,6 +7,7 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { useStore } from '@/context/StoreContext';
 import { catalog, formatMoney, getPreviewUrl, getModelUrl } from '@/data/catalog';
+import { setupSpeakerModel, applySpeakerVariant } from '@/utils/modelVariants';
 
 // Cache for loaded GLTF models to make reopen instantaneous
 const modelCache = new Map<string, Promise<any>>();
@@ -23,8 +24,12 @@ function loadModelCached(file: string, dracoLoader: DRACOLoader) {
   return modelCache.get(file)!;
 }
 
-function normalizedModel(gltf: any, size = 3.3) {
+function normalizedModel(gltf: any, size = 3.3, productId?: string) {
   const content = gltf.scene.clone(true);
+
+  if (productId === 'speaker') {
+    setupSpeakerModel(content);
+  }
 
   content.traverse((child: any) => {
     if (child.isMesh && child.material) {
@@ -136,20 +141,42 @@ function getProductInitialRotation(productId: string) {
 }
 
 export function ProductDialog() {
-  const { quickviewProduct, closeQuickview, addToBag } = useStore();
+  const {
+    quickviewProduct,
+    quickviewVariantId,
+    closeQuickview,
+    addToBag,
+    speakerVariant,
+    setSpeakerVariant,
+  } = useStore();
   const [quantity, setQuantity] = useState(1);
   const [modelStatus, setModelStatus] = useState('Loading your closer look…');
   const [modelReady, setModelReady] = useState(false);
+  const [selectedVariantId, setSelectedVariantId] = useState<string>('black');
+  const selectedVariantRef = useRef<string>(selectedVariantId);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rotationRef = useRef({ x: 0.12, y: -0.15 });
   const animFrameRef = useRef<number | null>(null);
+  const currentModelRef = useRef<any>(null);
+
+  useEffect(() => {
+    selectedVariantRef.current = selectedVariantId;
+  }, [selectedVariantId]);
 
   useEffect(() => {
     if (quickviewProduct) {
       setQuantity(1);
       setModelStatus('Loading your closer look…');
       setModelReady(false);
+      currentModelRef.current = null;
+
+      const initVariant =
+        quickviewProduct.id === 'speaker'
+          ? (quickviewVariantId as 'black' | 'white') || speakerVariant || 'black'
+          : quickviewProduct.defaultVariant || quickviewProduct.variants?.[0]?.id || 'black';
+      setSelectedVariantId(initVariant);
+
       const initRot = getProductInitialRotation(quickviewProduct.id);
       rotationRef.current = { x: initRot.x, y: initRot.y };
       document.body.style.overflow = 'hidden';
@@ -166,7 +193,14 @@ export function ProductDialog() {
         window.removeEventListener('keydown', handleKeyDown);
       };
     }
-  }, [quickviewProduct, closeQuickview]);
+  }, [quickviewProduct, quickviewVariantId, speakerVariant, closeQuickview]);
+
+  // Keep speaker 3D materials synchronized with selected variant
+  useEffect(() => {
+    if (quickviewProduct?.id === 'speaker' && currentModelRef.current) {
+      applySpeakerVariant(currentModelRef.current.group, selectedVariantId as 'black' | 'white');
+    }
+  }, [selectedVariantId, quickviewProduct]);
 
   // Three.js 3D stage setup for modal
   useEffect(() => {
@@ -259,7 +293,14 @@ export function ProductDialog() {
         loadModelCached(quickviewProduct.file, draco)
           .then((gltf) => {
             if (!active) return;
-            currentModel = normalizedModel(gltf, 3.3);
+            currentModel = normalizedModel(gltf, 3.3, quickviewProduct.id);
+            if (quickviewProduct.id === 'speaker') {
+              applySpeakerVariant(
+                currentModel.group,
+                (selectedVariantRef.current || 'black') as 'black' | 'white'
+              );
+            }
+            currentModelRef.current = currentModel;
             const initRot = getProductInitialRotation(quickviewProduct.id);
             currentModel.group.rotation.set(initRot.x, initRot.y, 0);
             scene.add(currentModel.group);
@@ -383,9 +424,23 @@ export function ProductDialog() {
   const objectIndex =
     'OBJECT ' + String(catalog.indexOf(quickviewProduct) + 1).padStart(2, '0');
 
-  const handleAdd = () => {
-    addToBag(quickviewProduct.id, quantity);
+  const handleSelectVariant = (variantId: string) => {
+    setSelectedVariantId(variantId);
+    if (quickviewProduct?.id === 'speaker') {
+      setSpeakerVariant(variantId as 'black' | 'white');
+      if (currentModelRef.current) {
+        applySpeakerVariant(currentModelRef.current.group, variantId as 'black' | 'white');
+      }
+    }
   };
+
+  const handleAdd = () => {
+    addToBag(quickviewProduct.id, quantity, selectedVariantId);
+  };
+
+  const currentFinishName =
+    quickviewProduct.variants?.find((v) => v.id === selectedVariantId)?.name ||
+    quickviewProduct.finish;
 
   return (
     <div
@@ -412,7 +467,7 @@ export function ProductDialog() {
           <span className="modal-object-index">{objectIndex}</span>
           <img
             id="modal-poster"
-            src={getPreviewUrl(quickviewProduct)}
+            src={getPreviewUrl(quickviewProduct, selectedVariantId)}
             alt={quickviewProduct.name}
             style={{ display: modelReady ? 'none' : 'block' }}
           />
@@ -440,12 +495,43 @@ export function ProductDialog() {
 
           <div className="finish-label">
             <span>Finish</span>
-            <span id="modal-finish">{quickviewProduct.finish}</span>
+            <span id="modal-finish">{currentFinishName}</span>
           </div>
-          <div
-            className="finish-swatch"
-            style={{ background: quickviewProduct.color }}
-          />
+
+          {quickviewProduct.variants && quickviewProduct.variants.length > 0 ? (
+            <div className="variant-options" role="radiogroup" aria-label="Select color finish">
+              {quickviewProduct.variants.map((v) => {
+                const isSelected = selectedVariantId === v.id;
+                return (
+                  <button
+                    key={v.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={isSelected}
+                    className={`variant-pill-button ${isSelected ? 'active' : ''}`}
+                    onClick={() => handleSelectVariant(v.id)}
+                  >
+                    <span
+                      className="variant-pill-swatch"
+                      style={{
+                        background: v.color,
+                        boxShadow:
+                          v.id === 'white'
+                            ? 'inset 0 0 0 1px rgba(255, 255, 255, 0.4), 0 0 0 1px rgba(0, 0, 0, 0.35)'
+                            : undefined,
+                      }}
+                    />
+                    <span className="variant-pill-label">{v.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div
+              className="finish-swatch"
+              style={{ background: quickviewProduct.color }}
+            />
+          )}
 
           <ul id="modal-features">
             {quickviewProduct.features.map((f, i) => (

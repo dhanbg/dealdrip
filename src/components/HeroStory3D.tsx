@@ -7,9 +7,14 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { chapters, getProduct, getPreviewUrl, Product } from '@/data/catalog';
 import { useStore, CategoryFilter } from '@/context/StoreContext';
+import { setupSpeakerModel, applySpeakerVariant } from '@/utils/modelVariants';
 
-function normalizedModel(gltf: any, size = 3.4) {
+function normalizedModel(gltf: any, size = 3.4, productId?: string) {
   const content = gltf.scene.clone(true);
+
+  if (productId === 'speaker') {
+    setupSpeakerModel(content);
+  }
 
   content.traverse((child: any) => {
     if (child.isMesh && child.material) {
@@ -187,7 +192,7 @@ function getProductBaseRotation(index: number, mobile: boolean) {
 }
 
 export function HeroStory3D() {
-  const { openQuickview, setFilter } = useStore();
+  const { openQuickview, setFilter, speakerVariant, setSpeakerVariant } = useStore();
   const [currentChapterIdx, setCurrentChapterIdx] = useState(0);
   const [hero3dFailed, setHero3dFailed] = useState(false);
   const [loadedChapters, setLoadedChapters] = useState<number[]>([]);
@@ -203,6 +208,14 @@ export function HeroStory3D() {
   const scrollTargetRef = useRef(0);
   const scrollPositionRef = useRef(0);
   const isVisibleRef = useRef(true);
+
+  // Synchronize 3D speaker model in hero with selected speaker variant
+  useEffect(() => {
+    const speakerModel = heroModelsRef.current.get(0);
+    if (speakerModel) {
+      applySpeakerVariant(speakerModel.group, speakerVariant);
+    }
+  }, [speakerVariant]);
 
   const currentChapter = chapters[currentChapterIdx];
   const currentProduct = getProduct(currentChapter.id) as Product;
@@ -385,7 +398,8 @@ export function HeroStory3D() {
         .loadAsync(`/assets/models/${firstProduct.file}.glb?v=3`)
         .then((gltf) => {
           if (!active) return;
-          const model = normalizedModel(gltf);
+          const model = normalizedModel(gltf, 3.4, 'speaker');
+          applySpeakerVariant(model.group, speakerVariant);
           heroModelsRef.current.set(0, model);
           scene.add(model.group);
 
@@ -725,7 +739,12 @@ export function HeroStory3D() {
             <button
               className="text-button"
               id="hero-quickview"
-              onClick={() => openQuickview(currentChapter.id)}
+              onClick={() =>
+                openQuickview(
+                  currentChapter.id,
+                  currentChapter.id === 'speaker' ? speakerVariant : undefined
+                )
+              }
             >
               A closer look <span aria-hidden="true">+</span>
             </button>
@@ -757,12 +776,47 @@ export function HeroStory3D() {
           <div>
             <span>{currentProduct.name}</span>
             <button
-              onClick={() => openQuickview(currentChapter.id)}
+              onClick={() =>
+                openQuickview(
+                  currentChapter.id,
+                  currentChapter.id === 'speaker' ? speakerVariant : undefined
+                )
+              }
               aria-label={`View featured product ${currentProduct.name}`}
             >
               +
             </button>
           </div>
+          {currentChapter.id === 'speaker' && currentProduct.variants && (
+            <div className="hero-variant-selector" role="radiogroup" aria-label="Select speaker variant">
+              {currentProduct.variants.map((v) => {
+                const isActive = speakerVariant === v.id;
+                return (
+                  <button
+                    key={v.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={isActive}
+                    className={`hero-variant-pill ${isActive ? 'active' : ''}`}
+                    onClick={() => setSpeakerVariant(v.id as 'black' | 'white')}
+                    aria-label={`Speaker variant: ${v.name}`}
+                  >
+                    <span
+                      className="hero-variant-dot"
+                      style={{
+                        background: v.color,
+                        boxShadow:
+                          v.id === 'white'
+                            ? 'inset 0 0 0 1px rgba(255, 255, 255, 0.4), 0 0 0 1px rgba(0, 0, 0, 0.35)'
+                            : undefined,
+                      }}
+                    />
+                    <span>{v.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <div className="rotate-hint">

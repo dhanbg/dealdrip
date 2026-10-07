@@ -1,0 +1,136 @@
+import * as THREE from 'three';
+
+// Node name prefixes for top surface parts
+const TOP_NODE_PREFIXES = [
+  'top-outer-trim',
+  'top-inset-light-guide',
+  'top-smooth-panel',
+  'wireless-pad-outer-ring',
+  'wireless-pad-raised-disc',
+  'wireless-pad-embossed-bolt',
+];
+
+// Node name suffixes for top rim housing above fabric
+const TOP_RIM_HASHES = [
+  '0eedc6',
+  '2039bf',
+  '1d0ba4',
+  '7308da',
+];
+
+// Node name suffixes for bottom base housing below fabric
+const BOTTOM_BASE_HASHES = [
+  '48d254',
+  '64915a',
+  '362058',
+  '4d19e7',
+  '60333a',
+  '7610cc',
+  '59fa7f',
+];
+
+// Node name prefixes for other bottom parts (vents, feet, rear capsule)
+const BOTTOM_PREFIXES = [
+  'Recessed bottom vent',
+  'Vent molded edge',
+  'bottom-foot-collar',
+  'bottom-foot-seam',
+  'rear-io-molded-capsule',
+];
+
+/**
+ * Traverses speaker model scene, deepens the fabric tone, and configures
+ * dual-variant (Black / White) materials on the top surface and bottom base.
+ */
+export function setupSpeakerModel(content: THREE.Object3D) {
+  content.traverse((child) => {
+    const mesh = child as THREE.Mesh;
+    if (!mesh.isMesh || !mesh.material) return;
+    const name = mesh.name || '';
+
+    // Gently deepen the speaker fabric so it has a rich heather grey tone matching product photo
+    const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    mats.forEach((mat) => {
+      const m = mat as THREE.MeshStandardMaterial;
+      if (
+        m.name === 'Dark enlarged woven fabric' ||
+        name.includes('92eb65')
+      ) {
+        if (m.color) m.color.setRGB(0.50, 0.51, 0.53);
+        m.roughness = 0.88;
+        m.needsUpdate = true;
+      }
+    });
+
+    const isTop =
+      TOP_NODE_PREFIXES.some((p) => name.startsWith(p)) ||
+      TOP_RIM_HASHES.some((h) => name.includes(h));
+
+    const isBottom =
+      BOTTOM_BASE_HASHES.some((h) => name.includes(h)) ||
+      BOTTOM_PREFIXES.some((p) => name.startsWith(p));
+
+    if (isTop || isBottom) {
+      mesh.userData.isSpeakerTop = isTop;
+      mesh.userData.isSpeakerBottom = isBottom;
+
+      // Cache a clone of original default (black) material
+      const baseMat = (Array.isArray(mesh.material) ? mesh.material[0] : mesh.material) as THREE.MeshStandardMaterial;
+      mesh.userData.blackMat = baseMat.clone();
+
+      // Create and configure pristine white material
+      const whiteMat = baseMat.clone();
+      if (name.startsWith('wireless-pad-embossed-bolt')) {
+        // Charging bolt icon: subtle elegant contrast on white charging disc
+        whiteMat.color.setRGB(0.74, 0.77, 0.80);
+        whiteMat.roughness = 0.45;
+        whiteMat.metalness = 0.04;
+      } else if (name.startsWith('top-inset-light-guide')) {
+        // Frosted clean light guide ring
+        whiteMat.color.setRGB(0.92, 0.94, 0.96);
+        whiteMat.roughness = 0.30;
+        whiteMat.metalness = 0.02;
+      } else if (name.startsWith('Recessed bottom vent') || name.startsWith('Vent molded edge')) {
+        // Subtle depth shading in vents
+        whiteMat.color.setRGB(0.88, 0.90, 0.92);
+        whiteMat.roughness = 0.52;
+        whiteMat.metalness = 0.01;
+      } else if (name.startsWith('bottom-foot-')) {
+        // Foot collars & seams
+        whiteMat.color.setRGB(0.90, 0.92, 0.94);
+        whiteMat.roughness = 0.45;
+        whiteMat.metalness = 0.02;
+      } else if (name.startsWith('rear-io-molded-capsule')) {
+        // Rear IO molded capsule
+        whiteMat.color.setRGB(0.92, 0.94, 0.95);
+        whiteMat.roughness = 0.42;
+        whiteMat.metalness = 0.02;
+      } else {
+        // Main top surface parts (trim, smooth panel, rings, rim) & bottom base housing
+        whiteMat.color.setRGB(0.94, 0.95, 0.96);
+        whiteMat.roughness = isTop ? 0.32 : 0.38;
+        whiteMat.metalness = 0.02;
+      }
+      whiteMat.needsUpdate = true;
+      mesh.userData.whiteMat = whiteMat;
+    }
+  });
+}
+
+/**
+ * Switch the speaker between 'black' (default) and 'white' variants instantly.
+ * In white variant, top surface and bottom black parts become white, while the
+ * heather grey woven fabric, LED clock, controls, and rubber feet remain intact.
+ */
+export function applySpeakerVariant(root: THREE.Object3D, variant: 'black' | 'white') {
+  root.traverse((child) => {
+    const mesh = child as THREE.Mesh;
+    if (mesh.isMesh && (mesh.userData.isSpeakerTop || mesh.userData.isSpeakerBottom)) {
+      if (variant === 'white' && mesh.userData.whiteMat) {
+        mesh.material = mesh.userData.whiteMat;
+      } else if (mesh.userData.blackMat) {
+        mesh.material = mesh.userData.blackMat;
+      }
+    }
+  });
+}

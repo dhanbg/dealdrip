@@ -12,7 +12,15 @@ const categories: { label: string; value: CategoryFilter }[] = [
 ];
 
 export function CollectionSection() {
-  const { filter, setFilter, filteredProducts, openQuickview, addToBag } = useStore();
+  const {
+    filter,
+    setFilter,
+    filteredProducts,
+    openQuickview,
+    addToBag,
+    speakerVariant,
+    setSpeakerVariant,
+  } = useStore();
 
   return (
     <section className="collection-section" id="collection">
@@ -61,17 +69,20 @@ export function CollectionSection() {
       <div className="product-grid" id="product-grid">
         {filteredProducts.map((p) => {
           const indexNum = String(catalog.indexOf(p) + 1).padStart(2, '0');
+          const currentVariantId =
+            p.id === 'speaker' ? speakerVariant : p.defaultVariant;
+
           return (
             <article key={p.id} className="product-card">
               <button
                 className="product-image-button"
-                onClick={() => openQuickview(p)}
+                onClick={() => openQuickview(p, currentVariantId)}
                 aria-label={`Explore ${p.name} in 3D`}
               >
                 <span className="product-index">{indexNum} /</span>
                 {p.badge && <span className="product-badge">{p.badge}</span>}
                 <img
-                  src={getPreviewUrl(p)}
+                  src={getPreviewUrl(p, currentVariantId)}
                   alt={p.name}
                   width="760"
                   height="640"
@@ -84,13 +95,52 @@ export function CollectionSection() {
                 <div>
                   <div className="product-category">{p.category}</div>
                   <h3>
-                    <button onClick={() => openQuickview(p)}>{p.name}</button>
+                    <button onClick={() => openQuickview(p, currentVariantId)}>
+                      {p.name}
+                    </button>
                   </h3>
                   <p className="product-price">{formatMoney(p.price)}</p>
+
+                  {p.variants && p.variants.length > 0 && (
+                    <div className="card-variant-selector">
+                      {p.variants.map((v) => {
+                        const isSelected = currentVariantId === v.id;
+                        return (
+                          <button
+                            key={v.id}
+                            type="button"
+                            className={`card-variant-dot ${isSelected ? 'active' : ''}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (p.id === 'speaker') {
+                                setSpeakerVariant(v.id as 'black' | 'white');
+                              }
+                              openQuickview(p, v.id);
+                            }}
+                            aria-label={`${p.name} in ${v.name}`}
+                            title={v.name}
+                          >
+                            <span
+                              style={{
+                                background: v.color,
+                                boxShadow:
+                                  v.id === 'white'
+                                    ? 'inset 0 0 0 1px rgba(255, 255, 255, 0.4), 0 0 0 1px rgba(0, 0, 0, 0.35)'
+                                    : undefined,
+                              }}
+                            />
+                          </button>
+                        );
+                      })}
+                      <span className="card-variant-label">
+                        {p.variants.find((v) => v.id === currentVariantId)?.name || p.finish}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <button
                   className="add-circle"
-                  onClick={() => addToBag(p.id)}
+                  onClick={() => addToBag(p.id, 1, currentVariantId)}
                   aria-label={`Add ${p.name} to bag`}
                 >
                   +

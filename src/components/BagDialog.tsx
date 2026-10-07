@@ -66,34 +66,35 @@ export function BagDialog() {
 
         <div id="bag-items">
           {cartItems.length > 0 ? (
-            cartItems.map(({ product, quantity }) => (
-              <div key={product.id} className="bag-item">
+            cartItems.map(({ product, quantity, variantId, variantName, cartKey }) => (
+              <div key={cartKey} className="bag-item">
                 <img
-                  src={getPreviewUrl(product)}
+                  src={getPreviewUrl(product, variantId)}
                   alt={product.name}
                   width="95"
                   height="100"
                 />
                 <div>
                   <h3>{product.name}</h3>
+                  {variantName && <p className="bag-item-variant">Finish: {variantName}</p>}
                   <p className="bag-item-price">{formatMoney(product.price)}</p>
                   <div className="bag-item-controls">
                     <button
-                      onClick={() => updateQuantity(product.id, -1)}
+                      onClick={() => updateQuantity(cartKey, -1)}
                       aria-label={`Decrease ${product.name} quantity`}
                     >
                       −
                     </button>
                     <span>{quantity}</span>
                     <button
-                      onClick={() => updateQuantity(product.id, 1)}
+                      onClick={() => updateQuantity(cartKey, 1)}
                       aria-label={`Increase ${product.name} quantity`}
                     >
                       +
                     </button>
                     <button
                       className="remove-item"
-                      onClick={() => removeFromBag(product.id)}
+                      onClick={() => removeFromBag(cartKey)}
                     >
                       Remove
                     </button>
