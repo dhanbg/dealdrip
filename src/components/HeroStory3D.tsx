@@ -122,18 +122,11 @@ export function HeroStory3D() {
   const [currentChapterIdx, setCurrentChapterIdx] = useState(0);
   const [hero3dFailed, setHero3dFailed] = useState(false);
   const [loadedChapters, setLoadedChapters] = useState<number[]>([]);
-  const [isFallbackForced, setIsFallbackForced] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('fallback')) {
-      setIsFallbackForced(true);
-    }
-  }, []);
+  const [is3dReady, setIs3dReady] = useState(false);
 
   const containerRef = useRef<HTMLElement>(null);
   const stickyRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fallbackRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLSpanElement>(null);
 
   const heroModelsRef = useRef<Map<number, any>>(new Map());
@@ -266,12 +259,19 @@ export function HeroStory3D() {
       rimLight.position.set(-4, 3, -2);
       scene.add(rimLight);
 
+      let lastW = 0;
+      let lastH = 0;
       const resize = () => {
         if (!canvas) return;
         const rect = canvas.getBoundingClientRect();
-        if (!rect.width || !rect.height) return;
-        renderer?.setSize(rect.width, rect.height, false);
-        camera.aspect = rect.width / rect.height;
+        const w = Math.round(rect.width);
+        const h = Math.round(rect.height);
+        if (!w || !h) return;
+        if (Math.abs(w - lastW) < 2 && Math.abs(h - lastH) < 2) return;
+        lastW = w;
+        lastH = h;
+        renderer?.setSize(w, h, false);
+        camera.aspect = w / h;
         camera.updateProjectionMatrix();
       };
 
@@ -306,7 +306,7 @@ export function HeroStory3D() {
           renderer?.render(scene, camera);
 
           setLoadedChapters((prev) => (prev.includes(0) ? prev : [...prev, 0]));
-          if (fallbackRef.current && !isFallbackForced) fallbackRef.current.hidden = true;
+          setIs3dReady(true);
           firstModelReadyTime = performance.now();
 
           // Progressively load remaining 4 chapters
@@ -358,7 +358,6 @@ export function HeroStory3D() {
         .catch(() => {
           if (!active) return;
           setHero3dFailed(true);
-          if (fallbackRef.current) fallbackRef.current.hidden = false;
         });
 
       let lastTime = 0;
@@ -387,10 +386,14 @@ export function HeroStory3D() {
         const short = window.innerHeight < 740;
         const sync = getHeroDesktopSync(camera.aspect);
         const centerX = mobile ? 0.0 : sync.centerX;
-        const centerY = mobile ? -1.040 : sync.centerY;
 
         const idleElapsed = firstModelReadyTime > 0 ? Math.max(0, time - firstModelReadyTime) : 0;
         const idleRamp = Math.min(1, idleElapsed / 2000);
+
+        if (mobile) {
+          heroRotationRef.current.y = THREE.MathUtils.damp(heroRotationRef.current.y, 0, 4, delta);
+          heroRotationRef.current.x = THREE.MathUtils.damp(heroRotationRef.current.x, 0, 6, delta);
+        }
 
         heroModelsRef.current.forEach((m, i) => {
           const d =
@@ -398,17 +401,20 @@ export function HeroStory3D() {
               ? Math.round(scrollPositionRef.current)
               : scrollPositionRef.current) - i;
           const abs = Math.abs(d);
-          m.group.visible = abs < 0.94;
+          m.group.visible = abs < 0.99;
           if (!m.group.visible) return;
 
-          const baseSize = (mobile ? (short ? 0.45 : 0.58) : sync.scaleMultiplier) * (1 - abs * 0.34);
+          // Scale is 100% constant during scroll - products NEVER scale up or down!
+          const baseSize = mobile ? (short ? 0.45 : 0.58) : sync.scaleMultiplier;
           const size = baseSize * (mobile ? getModelMobileScale(i) : getModelDesktopScale(i));
           const itemCenterY = mobile ? getProductMobileCenterY(i) : getProductDesktopCenterY(i, sync.centerY);
           m.group.scale.setScalar(size);
+
+          // Only products move horizontally across the screen
           m.group.position.set(
-            centerX + Math.sin((d * Math.PI) / 2) * (mobile ? 3.9 : 5),
-            itemCenterY - abs * 0.2 + (reduceMotion ? 0 : Math.sin(idleElapsed * 0.00075 + i) * 0.055 * idleRamp),
-            -abs * 1.2
+            centerX + Math.sin((d * Math.PI) / 2) * (mobile ? 3.1 : 5.0),
+            itemCenterY + (reduceMotion ? 0 : Math.sin(idleElapsed * 0.00075 + i) * 0.055 * idleRamp),
+            0
           );
 
           const { rx: baseRx, ry: baseRy, rz: baseRz } = getProductBaseRotation(i, mobile);
@@ -416,21 +422,13 @@ export function HeroStory3D() {
           m.group.rotation.set(
             baseRx + heroRotationRef.current.x,
             baseRy +
-              d * 1.05 +
+              d * 0.75 +
               heroRotationRef.current.y +
               (reduceMotion ? 0 : Math.sin(idleElapsed * 0.0003 + i) * 0.035 * idleRamp),
-            baseRz + abs * 0.08
+            baseRz
           );
         });
 
-        if (typeof window !== 'undefined' && (window as any).__heroForceFallback !== undefined) {
-          if (fallbackRef.current) fallbackRef.current.hidden = !(window as any).__heroForceFallback;
-        } else {
-          const target = Math.round(scrollPositionRef.current);
-          if (fallbackRef.current) {
-            fallbackRef.current.hidden = !isFallbackForced && heroModelsRef.current.has(target);
-          }
-        }
         renderer?.render(scene, camera);
       };
 
@@ -453,12 +451,42 @@ export function HeroStory3D() {
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
     let down = true;
+    let startX = e.clientX;
+    let startY = e.clientY;
     let lastX = e.clientX;
     let lastY = e.clientY;
-    if (e.pointerType === 'mouse') el.setPointerCapture(e.pointerId);
+    const isTouch = e.pointerType === 'touch';
+    let isHorizontalDrag = false;
+
+    if (!isTouch) {
+      el.setPointerCapture(e.pointerId);
+    }
 
     const onPointerMove = (ev: PointerEvent) => {
       if (!down) return;
+      const totalDx = ev.clientX - startX;
+      const totalDy = ev.clientY - startY;
+
+      if (isTouch) {
+        // On touch / mobile:
+        // If the gesture is vertical scroll, release immediately so native scroll is 100% stable
+        if (!isHorizontalDrag && Math.abs(totalDy) > 6 && Math.abs(totalDy) >= Math.abs(totalDx)) {
+          down = false;
+          return;
+        }
+        if (Math.abs(totalDx) > 8 && Math.abs(totalDx) > Math.abs(totalDy)) {
+          isHorizontalDrag = true;
+        }
+        if (!isHorizontalDrag) return;
+
+        const dx = ev.clientX - lastX;
+        heroRotationRef.current.y += dx * 0.006;
+        lastX = ev.clientX;
+        lastY = ev.clientY;
+        return;
+      }
+
+      // Desktop mouse drag
       const dx = ev.clientX - lastX;
       const dy = ev.clientY - lastY;
       heroRotationRef.current.y += dx * 0.008;
@@ -537,30 +565,31 @@ export function HeroStory3D() {
 
         <canvas ref={canvasRef} id="hero-canvas" aria-hidden="true"></canvas>
 
-        <div
-          ref={fallbackRef}
-          className="hero-fallback"
-          hidden={!isFallbackForced && loadedChapters.includes(currentChapterIdx) && !hero3dFailed}
-        >
-          {currentChapterIdx === 0 ? (
-            <picture>
-              <source
-                media="(max-width: 800px)"
-                srcSet="/assets/previews/speaker-hero-mobile.png?v=7"
-              />
-              <img
-                src="/assets/previews/speaker-hero-cutout.png?v=7"
-                alt={currentProduct.name}
-              />
-            </picture>
-          ) : (
-            <img
-              src={getPreviewUrl(currentProduct)}
-              alt={currentProduct.name}
-              className="hero-fallback-product-img"
-            />
-          )}
-        </div>
+        {!hero3dFailed && (
+          <div
+            className={`hero-loader ${is3dReady ? 'hero-loader-hidden' : ''}`}
+            aria-hidden={is3dReady}
+            aria-label="Loading interactive 3D model"
+          >
+            <div className="hero-loader-backdrop"></div>
+            <div className="hero-loader-card">
+              <div className="hero-loader-spinner" aria-hidden="true">
+                <div className="loader-orbit orbit-cyan"></div>
+                <div className="loader-orbit orbit-lime"></div>
+                <div className="loader-pulse-dot"></div>
+              </div>
+              <div className="hero-loader-info">
+                <span className="hero-loader-badge">DEAL DRIP 3D</span>
+                <div className="hero-loader-status">
+                  <span className="loader-status-text">INITIALIZING SCENE</span>
+                  <span className="loader-status-dots" aria-hidden="true">
+                    <span>.</span><span>.</span><span>.</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {!hero3dFailed && (
           <div
