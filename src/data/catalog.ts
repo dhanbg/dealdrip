@@ -88,11 +88,38 @@ export const catalog: Product[] = [
     file: 'silicone-foldable-bottle-web',
     category: 'Everyday',
     price: 700,
-    finish: 'Cloud',
-    color: '#d4d7cb',
+    finish: 'Sage green',
+    color: '#9bbd9e',
     badge: 'Go lightly',
-    description: 'A little less bulk, a little more freedom. An everyday companion with a distinctive folding silhouette.',
-    features: ['Flexible folded silhouette', 'Compact everyday design', 'Cloud-colored finish']
+    description: 'A little less bulk, a little more freedom. 600ml food-grade safety silicone with an origami folding silhouette.',
+    features: ['Food-grade safety silicone (BPA-free)', 'Folds down to 20% original volume', '600ml leak-proof capacity with carry strap'],
+    variants: [
+      {
+        id: 'sage',
+        name: 'Sage green',
+        color: '#9bbd9e',
+        image: '/assets/previews/silicone-foldable-bottle-web-sage.png',
+      },
+      {
+        id: 'pink',
+        name: 'Blush pink',
+        color: '#e8a8b0',
+        image: '/assets/previews/silicone-foldable-bottle-web-pink.png',
+      },
+      {
+        id: 'aqua',
+        name: 'Aqua blue',
+        color: '#5dc6d8',
+        image: '/assets/previews/silicone-foldable-bottle-web-aqua.png',
+      },
+      {
+        id: 'grey',
+        name: 'Slate grey',
+        color: '#94979e',
+        image: '/assets/previews/silicone-foldable-bottle-web-grey.png',
+      },
+    ],
+    defaultVariant: 'sage',
   },
   {
     id: 'premium',
@@ -100,10 +127,55 @@ export const catalog: Product[] = [
     file: '3-in-1-premium-web',
     category: 'Everyday',
     price: 700,
-    finish: 'Lavender',
+    finish: 'Soft lavender',
     color: '#c6bfd4',
-    description: 'One compact little object for a better-connected everyday. The considered addition to your carry.',
-    features: ['Three connector ends', 'Retractable cable design', 'Soft lavender finish']
+    description: 'One compact little object for a better-connected everyday. The considered addition to your carry, available in 7 expressive finishes.',
+    features: ['Three connector ends', 'Retractable cable design', '7 vibrant finishes'],
+    variants: [
+      {
+        id: 'red',
+        name: 'Crimson red',
+        color: '#c52233',
+        image: '/assets/previews/3-in-1-premium-web-red.png?v=1',
+      },
+      {
+        id: 'navy',
+        name: 'Navy blue',
+        color: '#1a294a',
+        image: '/assets/previews/3-in-1-premium-web-navy.png?v=1',
+      },
+      {
+        id: 'green',
+        name: 'Pine green',
+        color: '#2d5a43',
+        image: '/assets/previews/3-in-1-premium-web-green.png?v=1',
+      },
+      {
+        id: 'black',
+        name: 'Obsidian black',
+        color: '#1f232b',
+        image: '/assets/previews/3-in-1-premium-web-black.png?v=1',
+      },
+      {
+        id: 'white',
+        name: 'Pearl white',
+        color: '#f5f6f8',
+        image: '/assets/previews/3-in-1-premium-web-white.png?v=1',
+      },
+      {
+        id: 'orange',
+        name: 'Sunset orange',
+        color: '#f26435',
+        image: '/assets/previews/3-in-1-premium-web-orange.png?v=1',
+      },
+      {
+        id: 'lavender',
+        name: 'Soft lavender',
+        color: '#c6bfd4',
+        image: '/assets/previews/3-in-1-premium-web-lavender.png?v=1',
+      },
+    ],
+    defaultVariant: 'lavender',
   },
   {
     id: 'scarlett4',
@@ -155,10 +227,25 @@ export const catalog: Product[] = [
     file: '3-in-1-basic-web',
     category: 'Everyday',
     price: 500,
-    finish: 'Coral',
-    color: '#e97370',
+    finish: 'Sage green',
+    color: '#8fa88e',
     description: 'A cheerful little connection. Three ends, one neatly gathered cable, and a bright spot in your everyday carry.',
-    features: ['Three connector ends', 'Round cable organizer', 'Coral-colored finish']
+    features: ['Three connector ends', 'Round cable organizer', 'Two vibrant finishes'],
+    variants: [
+      {
+        id: 'green',
+        name: 'Sage green',
+        color: '#8fa88e',
+        image: '/assets/previews/3-in-1-basic-web-green.png?v=1',
+      },
+      {
+        id: 'red',
+        name: 'Coral red',
+        color: '#eb3d3e',
+        image: '/assets/previews/3-in-1-basic-web-red.png?v=1',
+      },
+    ],
+    defaultVariant: 'green',
   }
 ];
 

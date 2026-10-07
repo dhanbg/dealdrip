@@ -7,7 +7,16 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { useStore } from '@/context/StoreContext';
 import { catalog, formatMoney, getPreviewUrl, getModelUrl } from '@/data/catalog';
-import { setupSpeakerModel, applySpeakerVariant } from '@/utils/modelVariants';
+import {
+  setupSpeakerModel,
+  applySpeakerVariant,
+  setupBottleModel,
+  applyBottleVariant,
+  setupPremiumCableModel,
+  applyPremiumCableVariant,
+  setupBasicCableModel,
+  applyBasicCableVariant,
+} from '@/utils/modelVariants';
 
 // Cache for loaded GLTF models to make reopen instantaneous
 const modelCache = new Map<string, Promise<any>>();
@@ -29,6 +38,12 @@ function normalizedModel(gltf: any, size = 3.3, productId?: string) {
 
   if (productId === 'speaker') {
     setupSpeakerModel(content);
+  } else if (productId === 'bottle') {
+    setupBottleModel(content);
+  } else if (productId === 'premium') {
+    setupPremiumCableModel(content);
+  } else if (productId === 'basic') {
+    setupBasicCableModel(content);
   }
 
   content.traverse((child: any) => {
@@ -174,7 +189,7 @@ export function ProductDialog() {
       const initVariant =
         quickviewProduct.id === 'speaker'
           ? (quickviewVariantId as 'black' | 'white') || speakerVariant || 'black'
-          : quickviewProduct.defaultVariant || quickviewProduct.variants?.[0]?.id || 'black';
+          : quickviewVariantId || quickviewProduct.defaultVariant || quickviewProduct.variants?.[0]?.id || 'lavender';
       setSelectedVariantId(initVariant);
 
       const initRot = getProductInitialRotation(quickviewProduct.id);
@@ -195,10 +210,18 @@ export function ProductDialog() {
     }
   }, [quickviewProduct, quickviewVariantId, speakerVariant, closeQuickview]);
 
-  // Keep speaker 3D materials synchronized with selected variant
+  // Keep speaker and bottle 3D materials synchronized with selected variant
   useEffect(() => {
-    if (quickviewProduct?.id === 'speaker' && currentModelRef.current) {
-      applySpeakerVariant(currentModelRef.current.group, selectedVariantId as 'black' | 'white');
+    if (currentModelRef.current) {
+      if (quickviewProduct?.id === 'speaker') {
+        applySpeakerVariant(currentModelRef.current.group, selectedVariantId as 'black' | 'white');
+      } else if (quickviewProduct?.id === 'bottle') {
+        applyBottleVariant(currentModelRef.current.group, selectedVariantId);
+      } else if (quickviewProduct?.id === 'premium') {
+        applyPremiumCableVariant(currentModelRef.current.group, selectedVariantId);
+      } else if (quickviewProduct?.id === 'basic') {
+        applyBasicCableVariant(currentModelRef.current.group, selectedVariantId);
+      }
     }
   }, [selectedVariantId, quickviewProduct]);
 
@@ -298,6 +321,21 @@ export function ProductDialog() {
               applySpeakerVariant(
                 currentModel.group,
                 (selectedVariantRef.current || 'black') as 'black' | 'white'
+              );
+            } else if (quickviewProduct.id === 'bottle') {
+              applyBottleVariant(
+                currentModel.group,
+                selectedVariantRef.current || 'sage'
+              );
+            } else if (quickviewProduct.id === 'premium') {
+              applyPremiumCableVariant(
+                currentModel.group,
+                selectedVariantRef.current || 'lavender'
+              );
+            } else if (quickviewProduct.id === 'basic') {
+              applyBasicCableVariant(
+                currentModel.group,
+                selectedVariantRef.current || 'green'
               );
             }
             currentModelRef.current = currentModel;
@@ -431,6 +469,14 @@ export function ProductDialog() {
       setSpeakerVariant(variantId as 'black' | 'white');
       if (currentModelRef.current) {
         applySpeakerVariant(currentModelRef.current.group, variantId as 'black' | 'white');
+      }
+    } else if (quickviewProduct?.id === 'bottle') {
+      if (currentModelRef.current) {
+        applyBottleVariant(currentModelRef.current.group, variantId);
+      }
+    } else if (quickviewProduct?.id === 'premium') {
+      if (currentModelRef.current) {
+        applyPremiumCableVariant(currentModelRef.current.group, variantId);
       }
     }
   };

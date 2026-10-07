@@ -7,13 +7,21 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { chapters, getProduct, getPreviewUrl, Product } from '@/data/catalog';
 import { useStore, CategoryFilter } from '@/context/StoreContext';
-import { setupSpeakerModel, applySpeakerVariant } from '@/utils/modelVariants';
+import {
+  setupSpeakerModel,
+  applySpeakerVariant,
+  setupBottleModel,
+  applyBottleVariant,
+} from '@/utils/modelVariants';
 
 function normalizedModel(gltf: any, size = 3.4, productId?: string) {
   const content = gltf.scene.clone(true);
 
   if (productId === 'speaker') {
     setupSpeakerModel(content);
+  } else if (productId === 'bottle') {
+    setupBottleModel(content);
+    applyBottleVariant(content, 'sage');
   }
 
   content.traverse((child: any) => {
@@ -175,8 +183,8 @@ function getProductMobileCenterY(index: number) {
 function getProductBaseRotation(index: number, mobile: boolean) {
   switch (index) {
     case 0:
-      // Speaker & charging dock: tilted forward so top wireless charging surface and lighting circle are clearly visible
-      return { rx: mobile ? 0.30 : 0.38, ry: 0.0, rz: 0.0 };
+      // Speaker & charging dock: sleek natural angle with short, refined black border
+      return { rx: mobile ? 0.16 : 0.24, ry: 0.0, rz: 0.0 };
     case 1:
       // Scarlett Solo 3rd Gen: audio interface facing fully forward front, straight and level
       return { rx: 0.08, ry: 0.0, rz: 0.0 };
@@ -455,7 +463,7 @@ export function HeroStory3D() {
                 .loadAsync(`/assets/models/${prod.file}.glb?v=2`)
                 .then((subGltf) => {
                   if (!active) return;
-                  const subModel = normalizedModel(subGltf);
+                  const subModel = normalizedModel(subGltf, 3.4, prod.id);
                   subModel.group.visible = false;
                   heroModelsRef.current.set(i, subModel);
                   scene.add(subModel.group);
@@ -787,36 +795,6 @@ export function HeroStory3D() {
               +
             </button>
           </div>
-          {currentChapter.id === 'speaker' && currentProduct.variants && (
-            <div className="hero-variant-selector" role="radiogroup" aria-label="Select speaker variant">
-              {currentProduct.variants.map((v) => {
-                const isActive = speakerVariant === v.id;
-                return (
-                  <button
-                    key={v.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={isActive}
-                    className={`hero-variant-pill ${isActive ? 'active' : ''}`}
-                    onClick={() => setSpeakerVariant(v.id as 'black' | 'white')}
-                    aria-label={`Speaker variant: ${v.name}`}
-                  >
-                    <span
-                      className="hero-variant-dot"
-                      style={{
-                        background: v.color,
-                        boxShadow:
-                          v.id === 'white'
-                            ? 'inset 0 0 0 1px rgba(255, 255, 255, 0.4), 0 0 0 1px rgba(0, 0, 0, 0.35)'
-                            : undefined,
-                      }}
-                    />
-                    <span>{v.name}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
         </div>
 
         <div className="rotate-hint">
