@@ -175,8 +175,8 @@ function getProductMobileCenterY(index: number) {
 function getProductBaseRotation(index: number, mobile: boolean) {
   switch (index) {
     case 0:
-      // Speaker & charging dock: slope towards ourselves matching mobile angle, straight forward
-      return { rx: mobile ? 0.08 : 0.21, ry: 0.0, rz: 0.0 };
+      // Speaker & charging dock: tilted forward so top wireless charging surface and lighting circle are clearly visible
+      return { rx: mobile ? 0.30 : 0.38, ry: 0.0, rz: 0.0 };
     case 1:
       // Scarlett Solo 3rd Gen: audio interface facing fully forward front, straight and level
       return { rx: 0.08, ry: 0.0, rz: 0.0 };

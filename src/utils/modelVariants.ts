@@ -113,7 +113,34 @@ export function setupSpeakerModel(content: THREE.Object3D) {
     }
 
     // 3. Dual-variant parts: inner top surface & bottom base
-    const isTopSurface = TOP_SURFACE_PREFIXES.some((p) => name.startsWith(p));
+    const nodeName = ((mesh.userData && mesh.userData.name) || '').toLowerCase();
+    const lowerName = name.toLowerCase();
+
+    const isRing =
+      lowerName.includes('wireless-pad-outer-ring') ||
+      lowerName === 'gltf_3' ||
+      lowerName.includes('gltf_3') ||
+      nodeName.includes('wireless-pad-outer-ring');
+
+    const isDisc =
+      lowerName.includes('wireless-pad-raised-disc') ||
+      lowerName === 'gltf_4' ||
+      lowerName.includes('gltf_4') ||
+      nodeName.includes('wireless-pad-raised-disc');
+
+    const isBolt =
+      lowerName.includes('wireless-pad-embossed-bolt') ||
+      lowerName === 'gltf_5' ||
+      lowerName.includes('gltf_5') ||
+      nodeName.includes('wireless-pad-embossed-bolt');
+
+    const isPanel =
+      lowerName.includes('top-smooth-panel') ||
+      lowerName === 'gltf_2' ||
+      lowerName.includes('gltf_2') ||
+      nodeName.includes('top-smooth-panel');
+
+    const isTopSurface = isRing || isDisc || isBolt || isPanel;
     const isBottom =
       BOTTOM_BASE_HASHES.some((h) => name.includes(h)) ||
       BOTTOM_PREFIXES.some((p) => name.startsWith(p));
@@ -128,31 +155,46 @@ export function setupSpeakerModel(content: THREE.Object3D) {
 
       // Create and configure pristine white material
       const whiteMat = baseMat.clone();
-      if (name.startsWith('wireless-pad-outer-ring')) {
-        // Lighting circle ring: vibrant, clearly visible illuminated cyan/ice-blue LED light ring (NOT black!)
-        whiteMat.color.setRGB(0.25, 0.80, 0.95);
+      if (isRing) {
+        // Lighting circle ring: vibrant, unmistakably visible illuminated cyan/ice-blue LED light ring (NOT black!)
+        whiteMat.color.setRGB(0.10, 0.85, 1.0);
         if (whiteMat.emissive) {
-          whiteMat.emissive.setRGB(0.12, 0.65, 0.85);
+          whiteMat.emissive.setRGB(0.12, 0.75, 0.95);
         }
-        whiteMat.roughness = 0.18;
-        whiteMat.metalness = 0.08;
-      } else if (name.startsWith('wireless-pad-embossed-bolt')) {
-        // Charging bolt icon: luminous matching cyan accent
-        whiteMat.color.setRGB(0.15, 0.70, 0.88);
+        whiteMat.roughness = 0.15;
+        whiteMat.metalness = 0.05;
+        whiteMat.polygonOffset = true;
+        whiteMat.polygonOffsetFactor = -6.0;
+        whiteMat.polygonOffsetUnits = -6.0;
+        mesh.renderOrder = 20;
+        mesh.position.y += 0.003;
+      } else if (isBolt) {
+        // Charging bolt icon: glowing matching cyan accent
+        whiteMat.color.setRGB(0.10, 0.75, 0.95);
         if (whiteMat.emissive) {
-          whiteMat.emissive.setRGB(0.10, 0.55, 0.75);
+          whiteMat.emissive.setRGB(0.10, 0.65, 0.85);
         }
-        whiteMat.roughness = 0.25;
-        whiteMat.metalness = 0.06;
-      } else if (name.startsWith('wireless-pad-raised-disc')) {
+        whiteMat.roughness = 0.20;
+        whiteMat.metalness = 0.05;
+        whiteMat.polygonOffset = true;
+        whiteMat.polygonOffsetFactor = -8.0;
+        whiteMat.polygonOffsetUnits = -8.0;
+        mesh.renderOrder = 25;
+        mesh.position.y += 0.005;
+      } else if (isDisc) {
         // Raised charging disc: clean cool-white silicone pad with subtle depth
-        whiteMat.color.setRGB(0.91, 0.93, 0.95);
+        whiteMat.color.setRGB(0.92, 0.94, 0.96);
         if (whiteMat.emissive) whiteMat.emissive.setRGB(0, 0, 0);
         whiteMat.roughness = 0.40;
         whiteMat.metalness = 0.02;
-      } else if (name.startsWith('top-smooth-panel')) {
+        whiteMat.polygonOffset = true;
+        whiteMat.polygonOffsetFactor = -4.0;
+        whiteMat.polygonOffsetUnits = -4.0;
+        mesh.renderOrder = 15;
+        mesh.position.y += 0.002;
+      } else if (isPanel) {
         // Surrounding top panel: pristine clean white
-        whiteMat.color.setRGB(0.97, 0.98, 0.99);
+        whiteMat.color.setRGB(0.98, 0.98, 0.99);
         if (whiteMat.emissive) whiteMat.emissive.setRGB(0, 0, 0);
         whiteMat.roughness = 0.32;
         whiteMat.metalness = 0.02;

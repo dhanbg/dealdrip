@@ -133,7 +133,7 @@ function normalizedModel(gltf: any, size = 3.3, productId?: string) {
 }
 
 function getProductInitialRotation(productId: string) {
-  if (productId === 'speaker') return { x: 0.08, y: 0.0 };
+  if (productId === 'speaker') return { x: 0.36, y: -0.10 };
   if (productId.startsWith('scarlett')) return { x: 0.08, y: 0.0 };
   if (productId === 'keyboard') return { x: 0.32, y: 0.0 };
   if (productId === 'bottle') return { x: 0.0, y: 0.0 };
@@ -302,6 +302,7 @@ export function ProductDialog() {
             }
             currentModelRef.current = currentModel;
             const initRot = getProductInitialRotation(quickviewProduct.id);
+            rotationRef.current = { x: initRot.x, y: initRot.y };
             currentModel.group.rotation.set(initRot.x, initRot.y, 0);
             scene.add(currentModel.group);
             setModelReady(true);
