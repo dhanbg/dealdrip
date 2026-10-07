@@ -65,10 +65,17 @@ export function setupSpeakerModel(content: THREE.Object3D) {
       }
     });
 
-    // 1. Lighting parts: make invisible / turned off
-    // Top inset light guide ring: completely invisible
+    // 1. Top inset light guide: soft clean frosted bezel transition
     if (name.startsWith('top-inset-light-guide')) {
-      mesh.visible = false;
+      mats.forEach((mat) => {
+        const m = mat as THREE.MeshStandardMaterial;
+        if (m) {
+          m.color.setRGB(0.86, 0.89, 0.92);
+          m.roughness = 0.28;
+          m.metalness = 0.04;
+          m.needsUpdate = true;
+        }
+      });
       return;
     }
 
@@ -121,11 +128,34 @@ export function setupSpeakerModel(content: THREE.Object3D) {
 
       // Create and configure pristine white material
       const whiteMat = baseMat.clone();
-      if (name.startsWith('wireless-pad-embossed-bolt')) {
-        // Charging bolt icon: subtle elegant contrast on white charging disc
-        whiteMat.color.setRGB(0.74, 0.77, 0.80);
-        whiteMat.roughness = 0.45;
-        whiteMat.metalness = 0.04;
+      if (name.startsWith('wireless-pad-outer-ring')) {
+        // Lighting circle ring: vibrant, clearly visible illuminated cyan/ice-blue LED light ring (NOT black!)
+        whiteMat.color.setRGB(0.25, 0.80, 0.95);
+        if (whiteMat.emissive) {
+          whiteMat.emissive.setRGB(0.12, 0.65, 0.85);
+        }
+        whiteMat.roughness = 0.18;
+        whiteMat.metalness = 0.08;
+      } else if (name.startsWith('wireless-pad-embossed-bolt')) {
+        // Charging bolt icon: luminous matching cyan accent
+        whiteMat.color.setRGB(0.15, 0.70, 0.88);
+        if (whiteMat.emissive) {
+          whiteMat.emissive.setRGB(0.10, 0.55, 0.75);
+        }
+        whiteMat.roughness = 0.25;
+        whiteMat.metalness = 0.06;
+      } else if (name.startsWith('wireless-pad-raised-disc')) {
+        // Raised charging disc: clean cool-white silicone pad with subtle depth
+        whiteMat.color.setRGB(0.91, 0.93, 0.95);
+        if (whiteMat.emissive) whiteMat.emissive.setRGB(0, 0, 0);
+        whiteMat.roughness = 0.40;
+        whiteMat.metalness = 0.02;
+      } else if (name.startsWith('top-smooth-panel')) {
+        // Surrounding top panel: pristine clean white
+        whiteMat.color.setRGB(0.97, 0.98, 0.99);
+        if (whiteMat.emissive) whiteMat.emissive.setRGB(0, 0, 0);
+        whiteMat.roughness = 0.32;
+        whiteMat.metalness = 0.02;
       } else if (name.startsWith('Recessed bottom vent') || name.startsWith('Vent molded edge')) {
         // Subtle depth shading in vents
         whiteMat.color.setRGB(0.88, 0.90, 0.92);
@@ -142,9 +172,9 @@ export function setupSpeakerModel(content: THREE.Object3D) {
         whiteMat.roughness = 0.42;
         whiteMat.metalness = 0.02;
       } else {
-        // Inner top charging surface (smooth panel, outer ring, raised disc) & bottom base housing
+        // Bottom base housing
         whiteMat.color.setRGB(0.95, 0.96, 0.97);
-        whiteMat.roughness = isTopSurface ? 0.30 : 0.38;
+        whiteMat.roughness = 0.38;
         whiteMat.metalness = 0.02;
       }
       whiteMat.needsUpdate = true;
@@ -156,16 +186,13 @@ export function setupSpeakerModel(content: THREE.Object3D) {
 /**
  * Switch the speaker between 'black' (default) and 'white' variants instantly.
  * In white variant, inner top charging surface and bottom base become white,
- * while the top border remains sleek black, lighting parts remain invisible,
- * and the heather grey fabric, LED clock, and front controls remain intact.
+ * the lighting circle glows cyan on the charging pad, the top border remains
+ * sleek black, and the RGB strip on the housing remains active.
  */
 export function applySpeakerVariant(root: THREE.Object3D, variant: 'black' | 'white') {
   root.traverse((child) => {
     const mesh = child as THREE.Mesh;
     if (mesh.isMesh) {
-      if (mesh.name && mesh.name.startsWith('top-inset-light-guide')) {
-        mesh.visible = false;
-      }
       if (mesh.userData.isSpeakerSurface || mesh.userData.isSpeakerBottom) {
         if (variant === 'white' && mesh.userData.whiteMat) {
           mesh.material = mesh.userData.whiteMat;
