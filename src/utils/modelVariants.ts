@@ -72,15 +72,15 @@ export function setupSpeakerModel(content: THREE.Object3D) {
       return;
     }
 
-    // Housing light band: turn off emissive cyan glow and blend invisibly into dark continuous housing
+    // RGB lighting band on housing: keep vibrant RGB cyan glow active in both variants
     if (name.includes('476999') || name.includes('51381b')) {
       mats.forEach((mat) => {
         const m = mat as THREE.MeshStandardMaterial;
         if (m) {
-          if (m.emissive) m.emissive.setRGB(0, 0, 0);
-          if (m.color) m.color.setRGB(0.015, 0.015, 0.023);
+          if (m.emissive) m.emissive.setRGB(0, 0.723, 0.847);
+          if (m.color) m.color.setRGB(0.216, 0.718, 0.753);
           m.roughness = 0.36;
-          m.metalness = 0.08;
+          m.metalness = 0.0;
           m.needsUpdate = true;
         }
       });
