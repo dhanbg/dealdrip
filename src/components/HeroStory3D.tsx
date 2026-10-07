@@ -11,11 +11,13 @@ import { useStore, CategoryFilter } from '@/context/StoreContext';
 function normalizedModel(gltf: any, size = 3.4) {
   const content = gltf.scene.clone(true);
 
-  // Gently deepen the speaker fabric so it has a rich heather grey tone matching the product photo
   content.traverse((child: any) => {
     if (child.isMesh && child.material) {
       const mats = Array.isArray(child.material) ? child.material : [child.material];
       mats.forEach((m: any) => {
+        if (!m) return;
+
+        // Gently deepen the speaker fabric so it has a rich heather grey tone matching the product photo
         if (
           m.name === 'Dark enlarged woven fabric' ||
           (child.name && child.name.includes('92eb65'))
@@ -24,7 +26,74 @@ function normalizedModel(gltf: any, size = 3.4) {
           m.roughness = 0.88;
           m.needsUpdate = true;
         }
+
+        // Prevent Z-fighting and flickering on printed decals (Focusrite Scarlett Solo models, etc.)
+        if (m.name && m.name.startsWith('Print:')) {
+          m.polygonOffset = true;
+          m.polygonOffsetFactor = -4.0;
+          m.polygonOffsetUnits = -4.0;
+          m.depthWrite = false;
+          m.depthTest = true;
+          m.needsUpdate = true;
+        }
       });
+    }
+
+    // Physical bias for Focusrite Scarlett Solo 3rd Gen & 4th Gen decals to eliminate coplanar flickering:
+    // 1. Top Focusrite logo: bias upward away from the red aluminium casing
+    const isScarlettTopLogo =
+      (child.name === 'Label - Focusrite' ||
+        (child.material &&
+          (Array.isArray(child.material) ? child.material : [child.material]).some(
+            (m: any) => m?.name === 'Print: Focusrite'
+          ))) &&
+      child.position &&
+      child.position.y > 40;
+
+    // 2. Bottom labels (Focusrite Scarlett Solo, Gen label, USB power label): bias downward away from chassis and sticker
+    const isScarlettBottomLabel =
+      child.position &&
+      child.position.y < 10 &&
+      ((child.name &&
+        (child.name === 'Label - Focusrite Scarlett Solo' ||
+          child.name.includes('Generation') ||
+          child.name.includes('USB power') ||
+          child.name.includes('USB bus powered') ||
+          child.name.includes('5V DC'))) ||
+        (child.material &&
+          (Array.isArray(child.material) ? child.material : [child.material]).some(
+            (m: any) =>
+              m?.name === 'Print: Focusrite Scarlett Solo' ||
+              (m?.name && m.name.includes('Generation')) ||
+              (m?.name && m.name.includes('USB')) ||
+              (m?.name && m.name.includes('5V DC'))
+          )));
+
+    if (isScarlettTopLogo) {
+      child.position.y += 0.06;
+    } else if (isScarlettBottomLabel) {
+      child.position.y -= 0.06;
+    }
+
+    // 3. Underside technical label / sticker: slight bias downward to prevent coplanar fighting with casing
+    if (
+      child.name &&
+      child.position &&
+      (child.name === 'Underside technical label' ||
+        child.name === 'Underside identification sticker')
+    ) {
+      child.position.y -= 0.02;
+      if (child.material) {
+        const smats = Array.isArray(child.material) ? child.material : [child.material];
+        smats.forEach((sm: any) => {
+          if (sm) {
+            sm.polygonOffset = true;
+            sm.polygonOffsetFactor = -2.0;
+            sm.polygonOffsetUnits = -2.0;
+            sm.needsUpdate = true;
+          }
+        });
+      }
     }
   });
 
