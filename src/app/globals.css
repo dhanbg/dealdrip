@@ -263,22 +263,20 @@ button svg {
 
 /* Scroll Story */
 .scroll-story {
-  height: 460svh;
-  height: 460dvh;
+  height: 460vh;
   position: relative;
 }
 
 .story-sticky {
   height: 100vh;
-  height: 100dvh;
-  min-height: 0;
-  max-height: 100dvh;
+  height: 100lvh;
   position: sticky;
   top: 0;
   isolation: isolate;
   overflow: hidden;
   background: var(--ink);
-  contain: layout paint;
+  contain: strict;
+  touch-action: pan-y;
 }
 
 .hero-bg-stage {
@@ -303,7 +301,6 @@ button svg {
   object-fit: cover;
   object-position: center bottom;
   display: block;
-  transform: scale(1.02);
   filter: contrast(1.04) brightness(0.92);
 }
 
@@ -1943,14 +1940,16 @@ footer {
     gap: 12px;
   }
   .scroll-story {
-    height: 400vh;
-    height: 400dvh;
+    height: 420vh;
   }
   .story-sticky {
     height: 100vh;
-    height: 100dvh;
-    min-height: 0;
-    max-height: 100dvh;
+    height: 100lvh;
+    contain: strict;
+    touch-action: pan-y;
+  }
+  .hero-bg-image {
+    transform: none;
   }
   .hero-bg-overlay {
     background: 

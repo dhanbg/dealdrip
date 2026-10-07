@@ -176,11 +176,19 @@ export function HeroStory3D() {
 
   // Scroll listener
   useEffect(() => {
-    const handleScroll = () => {
+    let lastWidth = typeof window !== 'undefined' ? window.innerWidth : 0;
+    let travel = 1;
+    let storyTop = 0;
+
+    const measureTravel = () => {
       if (!containerRef.current || !stickyRef.current) return;
-      const story = containerRef.current;
-      const travel = Math.max(1, story.offsetHeight - stickyRef.current.offsetHeight);
-      const clamped = THREE.MathUtils.clamp((window.scrollY - story.offsetTop) / travel, 0, 1) * totalSteps;
+      travel = Math.max(1, containerRef.current.offsetHeight - stickyRef.current.offsetHeight);
+      storyTop = containerRef.current.offsetTop;
+    };
+    measureTravel();
+
+    const handleScroll = () => {
+      const clamped = THREE.MathUtils.clamp((window.scrollY - storyTop) / travel, 0, 1) * totalSteps;
       scrollTargetRef.current = clamped;
 
       if (progressBarRef.current) {
@@ -191,13 +199,24 @@ export function HeroStory3D() {
       setCurrentChapterIdx((prev) => (prev !== targetIdx ? targetIdx : prev));
     };
 
+    const handleResize = () => {
+      const isMobile = window.innerWidth <= 800;
+      // On mobile: ignore vertical resize events caused by URL bar collapse during scroll
+      if (isMobile && lastWidth !== 0 && window.innerWidth === lastWidth) {
+        return;
+      }
+      lastWidth = window.innerWidth;
+      measureTravel();
+      handleScroll();
+    };
+
     window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll);
+    window.addEventListener('resize', handleResize);
     handleScroll();
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
+      window.removeEventListener('resize', handleResize);
     };
   }, [totalSteps]);
 
@@ -267,6 +286,15 @@ export function HeroStory3D() {
         const w = Math.round(rect.width);
         const h = Math.round(rect.height);
         if (!w || !h) return;
+
+        const isMobile = window.innerWidth <= 800;
+        // On mobile: NEVER resize camera or WebGL buffer when scrolling!
+        // URL bar collapse changes height, but phone width stays identical.
+        // Only re-run resize if width changes (orientation flip) or first run.
+        if (isMobile && lastW !== 0 && w === lastW) {
+          return;
+        }
+
         if (Math.abs(w - lastW) < 2 && Math.abs(h - lastH) < 2) return;
         lastW = w;
         lastH = h;
@@ -293,11 +321,10 @@ export function HeroStory3D() {
           scene.add(model.group);
 
           const mobile = window.innerWidth <= 800;
-          const short = window.innerHeight < 740;
           const sync = getHeroDesktopSync(camera.aspect);
           const centerX = mobile ? 0.0 : sync.centerX;
           const centerY = mobile ? getProductMobileCenterY(0) : getProductDesktopCenterY(0, sync.centerY);
-          const baseSize = mobile ? (short ? 0.45 : 0.58) : sync.scaleMultiplier;
+          const baseSize = mobile ? 0.54 : sync.scaleMultiplier;
           const size = baseSize * (mobile ? getModelMobileScale(0) : getModelDesktopScale(0));
           model.group.scale.setScalar(size);
           model.group.position.set(centerX, centerY, 0);
@@ -383,7 +410,6 @@ export function HeroStory3D() {
         }
 
         const mobile = window.innerWidth <= 800;
-        const short = window.innerHeight < 740;
         const sync = getHeroDesktopSync(camera.aspect);
         const centerX = mobile ? 0.0 : sync.centerX;
 
@@ -405,7 +431,7 @@ export function HeroStory3D() {
           if (!m.group.visible) return;
 
           // Scale is 100% constant during scroll - products NEVER scale up or down!
-          const baseSize = mobile ? (short ? 0.45 : 0.58) : sync.scaleMultiplier;
+          const baseSize = mobile ? 0.54 : sync.scaleMultiplier;
           const size = baseSize * (mobile ? getModelMobileScale(i) : getModelDesktopScale(i));
           const itemCenterY = mobile ? getProductMobileCenterY(i) : getProductDesktopCenterY(i, sync.centerY);
           m.group.scale.setScalar(size);
@@ -467,11 +493,14 @@ export function HeroStory3D() {
       const totalDx = ev.clientX - startX;
       const totalDy = ev.clientY - startY;
 
-      if (isTouch) {
+        if (isTouch) {
         // On touch / mobile:
         // If the gesture is vertical scroll, release immediately so native scroll is 100% stable
-        if (!isHorizontalDrag && Math.abs(totalDy) > 6 && Math.abs(totalDy) >= Math.abs(totalDx)) {
+        if (!isHorizontalDrag && Math.abs(totalDy) > 4 && Math.abs(totalDy) >= Math.abs(totalDx)) {
           down = false;
+          el.removeEventListener('pointermove', onPointerMove);
+          el.removeEventListener('pointerup', onPointerUp);
+          el.removeEventListener('pointercancel', onPointerUp);
           return;
         }
         if (Math.abs(totalDx) > 8 && Math.abs(totalDx) > Math.abs(totalDy)) {
