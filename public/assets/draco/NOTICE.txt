@@ -1,0 +1,4 @@
+Draco decoder distribution.
+Source project: https://github.com/google/draco
+License: Apache License, Version 2.0 (included in LICENSE.txt).
+Decoder assets distributed with Three.js: https://github.com/mrdoob/three
