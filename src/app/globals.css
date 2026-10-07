@@ -1436,12 +1436,15 @@ footer {
   position: relative;
   min-height: 550px;
   overflow: hidden;
+  touch-action: none;
+  overscroll-behavior: contain;
 }
 
 .modal-visual > img {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  pointer-events: none;
 }
 
 .modal-visual canvas {
@@ -1450,7 +1453,14 @@ footer {
   width: 100%;
   height: 100%;
   cursor: grab;
-  touch-action: pan-y;
+  touch-action: none;
+  overscroll-behavior: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.modal-visual canvas:active {
+  cursor: grabbing;
 }
 
 .modal-object-index {

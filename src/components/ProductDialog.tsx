@@ -84,6 +84,7 @@ export function ProductDialog() {
       const initRot = getProductInitialRotation(quickviewProduct.id);
       rotationRef.current = { x: initRot.x, y: initRot.y };
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
 
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape') closeQuickview();
@@ -92,6 +93,7 @@ export function ProductDialog() {
 
       return () => {
         document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
         window.removeEventListener('keydown', handleKeyDown);
       };
     }
@@ -210,11 +212,14 @@ export function ProductDialog() {
         down = true;
         lastX = e.clientX;
         lastY = e.clientY;
-        if (e.pointerType === 'mouse') canvas.setPointerCapture(e.pointerId);
+        try {
+          canvas.setPointerCapture(e.pointerId);
+        } catch {}
       };
 
       const onPointerMove = (e: PointerEvent) => {
         if (!down) return;
+        e.preventDefault();
         const dx = e.clientX - lastX;
         const dy = e.clientY - lastY;
         rotationRef.current.y += dx * 0.008;
@@ -227,8 +232,26 @@ export function ProductDialog() {
         lastY = e.clientY;
       };
 
-      const onPointerUp = () => {
+      const onPointerUp = (e: PointerEvent) => {
         down = false;
+        try {
+          if (canvas.hasPointerCapture(e.pointerId)) {
+            canvas.releasePointerCapture(e.pointerId);
+          }
+        } catch {}
+      };
+
+      const onTouchStart = (e: TouchEvent) => {
+        if (e.cancelable) e.preventDefault();
+      };
+
+      const onTouchMove = (e: TouchEvent) => {
+        if (e.cancelable) e.preventDefault();
+      };
+
+      const onWheel = (e: WheelEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
       };
 
       const onKeyDown = (e: KeyboardEvent) => {
@@ -245,6 +268,9 @@ export function ProductDialog() {
       canvas.addEventListener('pointermove', onPointerMove);
       canvas.addEventListener('pointerup', onPointerUp);
       canvas.addEventListener('pointercancel', onPointerUp);
+      canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+      canvas.addEventListener('touchmove', onTouchMove, { passive: false });
+      canvas.addEventListener('wheel', onWheel, { passive: false });
       canvas.addEventListener('keydown', onKeyDown);
 
       // Render loop
@@ -270,6 +296,9 @@ export function ProductDialog() {
         canvas.removeEventListener('pointermove', onPointerMove);
         canvas.removeEventListener('pointerup', onPointerUp);
         canvas.removeEventListener('pointercancel', onPointerUp);
+        canvas.removeEventListener('touchstart', onTouchStart);
+        canvas.removeEventListener('touchmove', onTouchMove);
+        canvas.removeEventListener('wheel', onWheel);
         canvas.removeEventListener('keydown', onKeyDown);
         envTexture?.dispose();
         renderer?.dispose();
