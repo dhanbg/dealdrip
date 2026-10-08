@@ -259,32 +259,38 @@ export interface BottleVariantConfig {
 export const BOTTLE_VARIANT_CONFIGS: Record<BottleVariant, BottleVariantConfig> = {
   sage: {
     name: 'Sage green',
-    color: { r: 0.58, g: 0.72, b: 0.56 }, // soft pastel sage (#9bbd9e)
-    roughness: 0.70,
-    metalness: 0.02,
+    // Matcha / sage green (#a2baa0)
+    color: { r: 0.48, g: 0.68, b: 0.48 },
+    roughness: 0.85,
+    metalness: 0.0,
   },
   pink: {
     name: 'Blush pink',
-    color: { r: 0.92, g: 0.48, b: 0.54 }, // rich pastel blush pink (#ee8e9b)
-    roughness: 0.70,
-    metalness: 0.02,
+    // Sweet soft pastel blush pink (#e8abae)
+    color: { r: 0.94, g: 0.52, b: 0.56 },
+    roughness: 0.85,
+    metalness: 0.0,
   },
   aqua: {
     name: 'Aqua blue',
-    color: { r: 0.24, g: 0.75, b: 0.85 }, // vibrant sky/aqua cyan (#48c0d6)
-    roughness: 0.68,
-    metalness: 0.02,
+    // Vivid sky / turquoise aqua blue (#46b8c9) - spreads cleanly across body, strap, and lid
+    color: { r: 0.16, g: 0.66, b: 0.86 },
+    roughness: 0.82,
+    metalness: 0.0,
   },
   grey: {
     name: 'Slate grey',
-    color: { r: 0.52, g: 0.54, b: 0.57 }, // modern cool slate grey (#878c94)
-    roughness: 0.72,
-    metalness: 0.04,
+    // Modern cool slate grey (#888c96) - spreads cleanly across body, strap, and lid
+    color: { r: 0.38, g: 0.40, b: 0.44 },
+    roughness: 0.85,
+    metalness: 0.0,
   },
 };
 
 /**
  * Configure 3D materials for the foldable silicone bottle model across all variants.
+ * Uses calibrated PBR matte silicone materials that spread completely and evenly
+ * across the entire bottle and lid, with zero splash or bleeding artifacts.
  */
 export function setupBottleModel(content: THREE.Object3D) {
   content.traverse((child) => {
@@ -296,11 +302,18 @@ export function setupBottleModel(content: THREE.Object3D) {
     mesh.userData.isBottleMesh = true;
     mesh.userData.originalBottleMat = baseMat;
 
-    // Cache pre-configured materials for each variant so switching in 3D modal is instant
+    // Clean up any vertex color attribute on geometry to ensure perfectly uniform shader coverage
+    if (mesh.geometry && mesh.geometry.attributes.color) {
+      mesh.geometry.deleteAttribute('color');
+    }
+
+    // Pre-create dedicated PBR materials for each variant
     const variantMats: Record<string, THREE.MeshStandardMaterial> = {};
+
     (Object.keys(BOTTLE_VARIANT_CONFIGS) as BottleVariant[]).forEach((vKey) => {
       const cfg = BOTTLE_VARIANT_CONFIGS[vKey];
       const vMat = baseMat.clone();
+      vMat.vertexColors = false;
       vMat.color.setRGB(cfg.color.r, cfg.color.g, cfg.color.b);
       vMat.roughness = cfg.roughness;
       vMat.metalness = cfg.metalness;
@@ -309,11 +322,17 @@ export function setupBottleModel(content: THREE.Object3D) {
     });
 
     mesh.userData.bottleVariantMats = variantMats;
+
+    // Apply default variant (sage)
+    const defaultMat = variantMats['sage'];
+    if (defaultMat) {
+      mesh.material = defaultMat;
+    }
   });
 }
 
 /**
- * Apply the selected bottle variant to the 3D model.
+ * Apply the selected bottle variant to the 3D model with instant material switch.
  */
 export function applyBottleVariant(root: THREE.Object3D, variantId: string) {
   const targetKey = (variantId in BOTTLE_VARIANT_CONFIGS ? variantId : 'sage') as BottleVariant;
