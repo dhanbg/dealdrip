@@ -687,10 +687,10 @@ export function HeroStory3D() {
           <picture>
             <source
               media="(max-width: 800px)"
-              srcSet="/assets/hero-bg-mobile.jpg"
+              srcSet="/assets/dealdrip-hero-mobile-600x900.webp"
             />
             <img
-              src="/assets/hero-bg-desktop.png"
+              src="/assets/dealdrip-hero-desktop-1600x900.webp"
               alt=""
               className="hero-bg-image"
               loading="eager"
