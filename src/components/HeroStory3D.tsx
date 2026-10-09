@@ -205,6 +205,7 @@ export function HeroStory3D() {
   const [hero3dFailed, setHero3dFailed] = useState(false);
   const [loadedChapters, setLoadedChapters] = useState<number[]>([]);
   const [is3dReady, setIs3dReady] = useState(false);
+  const is3dReadyRef = useRef(false);
 
   const containerRef = useRef<HTMLElement>(null);
   const stickyRef = useRef<HTMLDivElement>(null);
@@ -315,11 +316,37 @@ export function HeroStory3D() {
     return () => observer.disconnect();
   }, []);
 
-  // Three.js scene initialization
   useEffect(() => {
     if (!canvasRef.current) return;
     const canvas = canvasRef.current;
     let active = true;
+
+    // Upfront WebGL support check
+    const isWebGLSupported = () => {
+      try {
+        const testCanvas = document.createElement('canvas');
+        return !!(
+          window.WebGLRenderingContext &&
+          (testCanvas.getContext('webgl2') ||
+            testCanvas.getContext('webgl') ||
+            testCanvas.getContext('experimental-webgl'))
+        );
+      } catch {
+        return false;
+      }
+    };
+
+    if (!isWebGLSupported()) {
+      setHero3dFailed(true);
+      return;
+    }
+
+    // Fallback timer: If WebGL scene hasn't loaded within 4.5s, reveal static fallback cleanly
+    const fallbackTimer = setTimeout(() => {
+      if (active && !is3dReadyRef.current) {
+        setHero3dFailed(true);
+      }
+    }, 4500);
 
     let renderer: THREE.WebGLRenderer | null = null;
     let envTexture: THREE.Texture | null = null;
@@ -415,6 +442,8 @@ export function HeroStory3D() {
           model.group.rotation.set(initRot.rx, initRot.ry, initRot.rz);
           renderer?.render(scene, camera);
 
+          clearTimeout(fallbackTimer);
+          is3dReadyRef.current = true;
           setLoadedChapters((prev) => (prev.includes(0) ? prev : [...prev, 0]));
           setIs3dReady(true);
           firstModelReadyTime = performance.now();
@@ -466,6 +495,7 @@ export function HeroStory3D() {
           }
         })
         .catch(() => {
+          clearTimeout(fallbackTimer);
           if (!active) return;
           setHero3dFailed(true);
         });
@@ -545,6 +575,7 @@ export function HeroStory3D() {
 
       return () => {
         active = false;
+        clearTimeout(fallbackTimer);
         if (animId) cancelAnimationFrame(animId);
         resizeObserver.disconnect();
         envTexture?.dispose();
@@ -552,6 +583,7 @@ export function HeroStory3D() {
         draco.dispose();
       };
     } catch {
+      clearTimeout(fallbackTimer);
       setHero3dFailed(true);
     }
   }, []);
@@ -675,7 +707,39 @@ export function HeroStory3D() {
           DEAL DRIP
         </div>
 
-        <canvas ref={canvasRef} id="hero-canvas" aria-hidden="true"></canvas>
+        <canvas
+          ref={canvasRef}
+          id="hero-canvas"
+          aria-hidden="true"
+          style={{
+            opacity: is3dReady && !hero3dFailed ? 1 : 0,
+            transition: 'opacity 0.6s ease',
+          }}
+        />
+
+        {/* Immediate high-quality static product fallback to prevent empty hero, layout shift, or WebGL absence */}
+        <div
+          className="hero-static-fallback"
+          style={{
+            opacity: is3dReady && !hero3dFailed ? 0 : 1,
+            pointerEvents: is3dReady && !hero3dFailed ? 'none' : 'auto',
+            transition: 'opacity 0.6s ease',
+          }}
+          aria-hidden={is3dReady && !hero3dFailed}
+        >
+          <img
+            src={getPreviewUrl(
+              currentProduct,
+              currentChapter.id === 'speaker' ? 'black' : undefined
+            )}
+            alt={currentProduct.name}
+            className="hero-fallback-image"
+            width="780"
+            height="620"
+            loading="eager"
+            fetchPriority="high"
+          />
+        </div>
 
         {!hero3dFailed && (
           <div

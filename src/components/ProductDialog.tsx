@@ -8,6 +8,18 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { useStore } from '@/context/StoreContext';
 import { catalog, formatMoney, getPreviewUrl, getModelUrl } from '@/data/catalog';
 import {
+  Check,
+  ShoppingBag,
+  Truck,
+  ShieldCheck,
+  RotateCcw,
+  Package,
+  Layers,
+  Info,
+  Maximize2,
+  X,
+} from 'lucide-react';
+import {
   setupSpeakerModel,
   applySpeakerVariant,
   setupBottleModel,
@@ -168,6 +180,8 @@ export function ProductDialog() {
   const [modelStatus, setModelStatus] = useState('Loading your closer look…');
   const [modelReady, setModelReady] = useState(false);
   const [selectedVariantId, setSelectedVariantId] = useState<string>('black');
+  const [activeTab, setActiveTab] = useState<'overview' | 'specs'>('overview');
+  const [justAdded, setJustAdded] = useState(false);
   const selectedVariantRef = useRef<string>(selectedVariantId);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -500,6 +514,8 @@ export function ProductDialog() {
 
   const handleAdd = () => {
     addToBag(quickviewProduct.id, quantity, selectedVariantId);
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 1800);
   };
 
   const currentFinishName =
@@ -520,11 +536,12 @@ export function ProductDialog() {
         aria-labelledby="modal-title"
       >
         <button
+          type="button"
           className="dialog-close icon-button"
           onClick={closeQuickview}
           aria-label="Close product details"
         >
-          ×
+          <X size={20} strokeWidth={2.2} />
         </button>
 
         <div className="modal-visual">
@@ -550,15 +567,16 @@ export function ProductDialog() {
         </div>
 
         <div className="modal-info">
-          <span className="eyebrow" id="modal-category">
-            {quickviewProduct.category}
-          </span>
-          <h2 id="modal-title">{quickviewProduct.name}</h2>
-          <p className="modal-price">{formatMoney(quickviewProduct.price)}</p>
-          <p id="modal-description">{quickviewProduct.description}</p>
+          <div className="modal-header-section">
+            <span className="eyebrow" id="modal-category">
+              {quickviewProduct.category}
+            </span>
+            <h2 id="modal-title">{quickviewProduct.name}</h2>
+            <p className="modal-price">{formatMoney(quickviewProduct.price)}</p>
+          </div>
 
           <div className="finish-label">
-            <span>Finish</span>
+            <span>Selected Finish</span>
             <span id="modal-finish">{currentFinishName}</span>
           </div>
 
@@ -594,39 +612,189 @@ export function ProductDialog() {
             <div
               className="finish-swatch"
               style={{ background: quickviewProduct.color }}
+              title={currentFinishName}
             />
           )}
 
-          <ul id="modal-features">
-            {quickviewProduct.features.map((f, i) => (
-              <li key={i}>{f}</li>
-            ))}
-          </ul>
+          {/* Details & Specs Tab Bar */}
+          <div className="modal-tabs" role="tablist" aria-label="Product details view">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'overview'}
+              className={`modal-tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
+              onClick={() => setActiveTab('overview')}
+            >
+              Overview & Features
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'specs'}
+              className={`modal-tab-btn ${activeTab === 'specs' ? 'active' : ''}`}
+              onClick={() => setActiveTab('specs')}
+            >
+              Specifications & Info
+            </button>
+          </div>
 
+          {activeTab === 'overview' ? (
+            <div className="modal-tab-content">
+              <p id="modal-description" className="modal-desc-text">
+                {quickviewProduct.description}
+              </p>
+
+              <ul id="modal-features" className="modal-features-list">
+                {quickviewProduct.features.map((f, i) => (
+                  <li key={i}>
+                    <Check size={16} className="feature-check-icon" strokeWidth={2.5} />
+                    <span>{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <div className="modal-tab-content modal-specs-container">
+              {quickviewProduct.specs && quickviewProduct.specs.length > 0 && (
+                <div className="specs-table" role="table" aria-label="Product specifications">
+                  {quickviewProduct.specs.map((item, i) => (
+                    <div key={i} className="specs-row" role="row">
+                      <span className="specs-label" role="rowheader">{item.label}</span>
+                      <span className="specs-val" role="cell">{item.value}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {quickviewProduct.dimensions && (
+                <div className="specs-group">
+                  <span className="specs-group-title">Dimensions & Form</span>
+                  <p className="specs-group-desc">{quickviewProduct.dimensions}</p>
+                </div>
+              )}
+
+              {quickviewProduct.compatibility && (
+                <div className="specs-group">
+                  <span className="specs-group-title">Compatibility</span>
+                  <p className="specs-group-desc">{quickviewProduct.compatibility}</p>
+                </div>
+              )}
+
+              {quickviewProduct.includedAccessories && (
+                <div className="specs-group">
+                  <span className="specs-group-title">In the Box</span>
+                  <ul className="specs-accessories-list">
+                    {quickviewProduct.includedAccessories.map((acc, i) => (
+                      <li key={i}>{acc}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {quickviewProduct.warranty && (
+                <div className="specs-group">
+                  <span className="specs-group-title">Warranty Coverage</span>
+                  <p className="specs-group-desc">{quickviewProduct.warranty}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Genuine Trust Assurances */}
+          <div className="modal-trust-bar">
+            <div className="trust-pill">
+              <Truck size={17} className="trust-icon" strokeWidth={2} />
+              <div>
+                <strong>Nepal-Wide Shipping</strong>
+                <span>Cash on Delivery available</span>
+              </div>
+            </div>
+            <div className="trust-pill">
+              <ShieldCheck size={17} className="trust-icon" strokeWidth={2} />
+              <div>
+                <strong>Genuine Hardware</strong>
+                <span>{quickviewProduct.warranty || 'Verified authentic'}</span>
+              </div>
+            </div>
+            <div className="trust-pill">
+              <RotateCcw size={17} className="trust-icon" strokeWidth={2} />
+              <div>
+                <strong>Defect Protection</strong>
+                <span>Inspect package on delivery</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Purchase Controls */}
           <div className="buy-controls">
-            <div className="quantity-picker">
+            <div className="quantity-picker" role="group" aria-label="Adjust quantity">
               <button
+                type="button"
                 onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                 aria-label="Decrease quantity"
+                disabled={quantity <= 1}
               >
                 −
               </button>
               <output aria-label="Quantity">{quantity}</output>
               <button
+                type="button"
                 onClick={() => setQuantity((q) => Math.min(99, q + 1))}
                 aria-label="Increase quantity"
+                disabled={quantity >= 99}
               >
                 +
               </button>
             </div>
-            <button className="button button-lime" onClick={handleAdd}>
-              Add to bag <span aria-hidden="true">+</span>
+            <button
+              type="button"
+              className={`button button-lime modal-add-btn ${justAdded ? 'is-added' : ''}`}
+              onClick={handleAdd}
+              aria-label={justAdded ? 'Added to bag' : `Add ${quantity} to bag`}
+            >
+              {justAdded ? (
+                <>
+                  <Check size={18} strokeWidth={2.5} />
+                  <span>Added to bag ✓</span>
+                </>
+              ) : (
+                <>
+                  <ShoppingBag size={18} strokeWidth={2} />
+                  <span>Add to bag ({formatMoney(quickviewProduct.price * quantity)})</span>
+                </>
+              )}
             </button>
           </div>
 
           <div className="modal-bottom-note">
-            A little closer to your next setup.
+            Curated hardware by Deal Drip. Delivered across all 7 provinces of Nepal.
           </div>
+        </div>
+
+        {/* Sticky Mobile Purchase Bar */}
+        <div className="modal-sticky-bar">
+          <div className="sticky-bar-info">
+            <span className="sticky-bar-name">{quickviewProduct.name}</span>
+            <span className="sticky-bar-price">{formatMoney(quickviewProduct.price)}</span>
+          </div>
+          <button
+            type="button"
+            className={`button button-lime sticky-bar-btn ${justAdded ? 'is-added' : ''}`}
+            onClick={handleAdd}
+            aria-label={`Add ${quickviewProduct.name} to bag`}
+          >
+            {justAdded ? (
+              <>
+                <Check size={16} strokeWidth={2.5} />
+                <span>Added ✓</span>
+              </>
+            ) : (
+              <>
+                <ShoppingBag size={16} strokeWidth={2} />
+                <span>Add to bag</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>

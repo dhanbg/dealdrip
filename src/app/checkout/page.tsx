@@ -390,10 +390,10 @@ export default function CheckoutPage() {
                       marginBottom: '1.25rem',
                       padding: '1rem',
                       borderRadius: '10px',
-                      background: 'rgba(223, 255, 79, 0.05)',
-                      border: '1px solid rgba(223, 255, 79, 0.2)',
+                      background: 'rgba(34, 211, 238, 0.08)',
+                      border: '1px solid rgba(34, 211, 238, 0.25)',
                     }}>
-                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#dfff4f', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#22D3EE', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                         <MapPin size={15} />
                         <span>Use Saved Nepal Delivery Destination:</span>
                       </div>
@@ -406,9 +406,9 @@ export default function CheckoutPage() {
                             style={{
                               padding: '0.45rem 0.85rem',
                               borderRadius: '6px',
-                              background: '#1a1d24',
-                              border: '1px solid #282d38',
-                              color: '#fff',
+                              background: '#111C2D',
+                              border: '1px solid #263449',
+                              color: '#F8FAFC',
                               fontSize: '0.8rem',
                               cursor: 'pointer',
                               fontWeight: 500,

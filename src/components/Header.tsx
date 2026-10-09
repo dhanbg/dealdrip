@@ -61,7 +61,7 @@ export function Header() {
             <Link
               href="/admin"
               className="account-toggle"
-              style={{ color: '#dfff4f', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '5px', textDecoration: 'none', fontSize: '13px' }}
+              style={{ color: '#22D3EE', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '5px', textDecoration: 'none', fontSize: '13px' }}
               aria-label="Admin Dashboard"
             >
               <Shield size={15} />
@@ -73,7 +73,7 @@ export function Header() {
             <Link
               href="/account"
               className="account-toggle"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: '#fff', fontSize: '13px' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: '#F8FAFC', fontSize: '13px' }}
               aria-label="My Account"
             >
               <User size={15} />
@@ -83,7 +83,7 @@ export function Header() {
             <Link
               href="/login"
               className="account-toggle"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: '#fff', fontSize: '13px' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: '#F8FAFC', fontSize: '13px' }}
               aria-label="Sign in"
             >
               <User size={15} />
@@ -125,7 +125,7 @@ export function Header() {
             <Link
               href="/admin"
               onClick={() => setMobileMenuOpen(false)}
-              style={{ color: '#dfff4f', textAlign: 'left', padding: '12px 0', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}
+              style={{ color: '#22D3EE', textAlign: 'left', padding: '12px 0', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}
             >
               <Shield size={16} />
               <span>Admin Dashboard</span>
