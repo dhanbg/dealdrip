@@ -52,7 +52,7 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 30px;
+  scroll-padding-top: 100px;
 }
 
 body {
@@ -132,20 +132,33 @@ button svg {
   top: 10px;
 }
 
-/* Site Header */
+/* Site Header - Fixed across scroll */
 .site-header {
   height: 88px;
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 20;
+  width: 100%;
+  z-index: 100;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 0 var(--pad);
+  padding: 0 var(--pad);
   border-bottom: 1px solid var(--line);
+  background: rgba(20, 21, 24, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   gap: 28px;
+  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.site-header.is-scrolled {
+  background: rgba(20, 21, 24, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
 }
 
 .wordmark {
@@ -246,14 +259,17 @@ button svg {
 }
 
 .mobile-nav {
-  position: absolute;
-  top: 76px;
+  position: fixed;
+  top: 88px;
   left: 0;
   right: 0;
   padding: 20px var(--pad);
-  background: var(--ink);
-  z-index: 22;
+  background: rgba(20, 21, 24, 0.97);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 99;
   border-bottom: 1px solid var(--line);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5);
 }
 
 .mobile-nav a,
@@ -2167,6 +2183,10 @@ footer {
   .site-header {
     height: 76px;
     gap: 12px;
+    padding: 0 var(--pad);
+  }
+  .mobile-nav {
+    top: 76px;
   }
   .wordmark {
     font-size: 30px;

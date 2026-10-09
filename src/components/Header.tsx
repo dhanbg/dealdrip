@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useStore, CategoryFilter } from '@/context/StoreContext';
@@ -10,9 +10,19 @@ import { User, Shield } from 'lucide-react';
 export function Header() {
   const { bagCount, openBag, setFilter } = useStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const { data: session } = authClient.useSession();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleNavClick = (category: CategoryFilter) => {
     setFilter(category);
@@ -33,7 +43,7 @@ export function Header() {
 
   return (
     <>
-      <header className="site-header">
+      <header className={`site-header ${scrolled ? 'is-scrolled' : ''}`}>
         <Link className="wordmark" href="/" aria-label="Deal Drip home">
           <img src="/assets/logo.png" alt="" className="brand-logo" width="30" height="30" />
           <span>DEAL DRIP</span>
