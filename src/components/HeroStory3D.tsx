@@ -141,7 +141,7 @@ function getProductDesktopCenterY(index: number, baseCenterY: number) {
     case 2:
       return baseCenterY - 0.28; // Keyboard & mouse combo: lowered down onto tabletop surface
     case 3:
-      return baseCenterY - 0.16; // Silicone Foldable Bottle: lifted up a little
+      return baseCenterY + 0.22; // Silicone Foldable Bottle: moved further up on desktop
     default:
       return baseCenterY;
   }
@@ -200,7 +200,7 @@ function getProductBaseRotation(index: number, mobile: boolean) {
 }
 
 export function HeroStory3D() {
-  const { openQuickview, setFilter, speakerVariant, setSpeakerVariant } = useStore();
+  const { openQuickview, setFilter } = useStore();
   const [currentChapterIdx, setCurrentChapterIdx] = useState(0);
   const [hero3dFailed, setHero3dFailed] = useState(false);
   const [loadedChapters, setLoadedChapters] = useState<number[]>([]);
@@ -216,14 +216,6 @@ export function HeroStory3D() {
   const scrollTargetRef = useRef(0);
   const scrollPositionRef = useRef(0);
   const isVisibleRef = useRef(true);
-
-  // Synchronize 3D speaker model in hero with selected speaker variant
-  useEffect(() => {
-    const speakerModel = heroModelsRef.current.get(0);
-    if (speakerModel) {
-      applySpeakerVariant(speakerModel.group, speakerVariant);
-    }
-  }, [speakerVariant]);
 
   const currentChapter = chapters[currentChapterIdx];
   const currentProduct = getProduct(currentChapter.id) as Product;
@@ -407,7 +399,7 @@ export function HeroStory3D() {
         .then((gltf) => {
           if (!active) return;
           const model = normalizedModel(gltf, 3.4, 'speaker');
-          applySpeakerVariant(model.group, speakerVariant);
+          applySpeakerVariant(model.group, 'black');
           heroModelsRef.current.set(0, model);
           scene.add(model.group);
 
@@ -750,7 +742,7 @@ export function HeroStory3D() {
               onClick={() =>
                 openQuickview(
                   currentChapter.id,
-                  currentChapter.id === 'speaker' ? speakerVariant : undefined
+                  currentChapter.id === 'speaker' ? 'black' : undefined
                 )
               }
             >
@@ -787,7 +779,7 @@ export function HeroStory3D() {
               onClick={() =>
                 openQuickview(
                   currentChapter.id,
-                  currentChapter.id === 'speaker' ? speakerVariant : undefined
+                  currentChapter.id === 'speaker' ? 'black' : undefined
                 )
               }
               aria-label={`View featured product ${currentProduct.name}`}

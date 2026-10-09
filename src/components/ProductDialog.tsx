@@ -179,21 +179,32 @@ export function ProductDialog() {
     selectedVariantRef.current = selectedVariantId;
   }, [selectedVariantId]);
 
+  const prevProductIdRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (quickviewProduct) {
-      setQuantity(1);
-      setModelStatus('Loading your closer look…');
-      setModelReady(false);
-      currentModelRef.current = null;
+      const isNewProduct = prevProductIdRef.current !== quickviewProduct.id;
+      prevProductIdRef.current = quickviewProduct.id;
 
-      const initVariant =
-        quickviewProduct.id === 'speaker'
-          ? (quickviewVariantId as 'black' | 'white') || speakerVariant || 'black'
-          : quickviewVariantId || quickviewProduct.defaultVariant || quickviewProduct.variants?.[0]?.id || 'lavender';
-      setSelectedVariantId(initVariant);
+      if (isNewProduct) {
+        setQuantity(1);
+        setModelStatus('Loading your closer look…');
+        setModelReady(false);
+        currentModelRef.current = null;
 
-      const initRot = getProductInitialRotation(quickviewProduct.id);
-      rotationRef.current = { x: initRot.x, y: initRot.y };
+        const initVariant =
+          quickviewProduct.id === 'speaker'
+            ? (quickviewVariantId as 'black' | 'white') || speakerVariant || 'black'
+            : quickviewVariantId ||
+              quickviewProduct.defaultVariant ||
+              quickviewProduct.variants?.[0]?.id ||
+              'lavender';
+        setSelectedVariantId(initVariant);
+
+        const initRot = getProductInitialRotation(quickviewProduct.id);
+        rotationRef.current = { x: initRot.x, y: initRot.y };
+      }
+
       document.body.style.overflow = 'hidden';
       document.documentElement.style.overflow = 'hidden';
 
@@ -207,8 +218,10 @@ export function ProductDialog() {
         document.documentElement.style.overflow = '';
         window.removeEventListener('keydown', handleKeyDown);
       };
+    } else {
+      prevProductIdRef.current = null;
     }
-  }, [quickviewProduct, quickviewVariantId, speakerVariant, closeQuickview]);
+  }, [quickviewProduct, quickviewVariantId, closeQuickview]);
 
   // Keep speaker and bottle 3D materials synchronized with selected variant
   useEffect(() => {
@@ -477,6 +490,10 @@ export function ProductDialog() {
     } else if (quickviewProduct?.id === 'premium') {
       if (currentModelRef.current) {
         applyPremiumCableVariant(currentModelRef.current.group, variantId);
+      }
+    } else if (quickviewProduct?.id === 'basic') {
+      if (currentModelRef.current) {
+        applyBasicCableVariant(currentModelRef.current.group, variantId);
       }
     }
   };

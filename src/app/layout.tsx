@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Manrope } from "next/font/google";
 import "./globals.css";
 import { StoreProvider } from "@/context/StoreContext";
+import { Toaster } from "sonner";
 import { Toast } from "@/components/Toast";
 import { ProductDialog } from "@/components/ProductDialog";
 import { BagDialog } from "@/components/BagDialog";
@@ -47,7 +48,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${manrope.variable}`}>
+    <html
+      lang="en"
+      className={`${spaceGrotesk.variable} ${manrope.variable}`}
+    >
       <body>
         <a className="skip-link" href="#collection">
           Skip to products
@@ -59,6 +63,7 @@ export default function RootLayout({
           <CheckoutDialog />
           <Toast />
           <WebMCPBridge />
+          <Toaster richColors position="top-right" closeButton theme="dark" />
         </StoreProvider>
       </body>
     </html>

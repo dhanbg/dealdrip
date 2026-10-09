@@ -31,19 +31,21 @@ const BOTTOM_BASE_HASHES = [
   '59fa7f',
 ];
 
-// Node name prefixes for other bottom parts (vents, feet, rear capsule)
+// Node name prefixes for other bottom parts (vents, feet, rear capsule, mounting strip)
 const BOTTOM_PREFIXES = [
   'Recessed bottom vent',
   'Vent molded edge',
   'bottom-foot-collar',
   'bottom-foot-seam',
+  'bottom-foot-rubber-pad',
   'rear-io-molded-capsule',
+  'Solid front control mounting strip',
 ];
 
 /**
  * Traverses speaker model scene, deepens the fabric tone, configures
- * dual-variant (Black / White) materials on the inner top charging surface
- * and bottom base, keeps the top border black, and makes lighting parts invisible.
+ * dual-variant (Black / White) materials on the inner top charging surface,
+ * bottom base, and speaker fabric, keeps the top border black, and makes lighting parts invisible.
  */
 export function setupSpeakerModel(content: THREE.Object3D) {
   content.traverse((child) => {
@@ -62,6 +64,14 @@ export function setupSpeakerModel(content: THREE.Object3D) {
         if (m.color) m.color.setRGB(0.50, 0.51, 0.53);
         m.roughness = 0.88;
         m.needsUpdate = true;
+
+        mesh.userData.isSpeakerFabric = true;
+        mesh.userData.blackFabricMat = m.clone();
+        const whiteFabricMat = m.clone();
+        whiteFabricMat.color.setRGB(0.68, 0.70, 0.73);
+        whiteFabricMat.roughness = 0.88;
+        whiteFabricMat.needsUpdate = true;
+        mesh.userData.whiteFabricMat = whiteFabricMat;
       }
     });
 
@@ -170,7 +180,10 @@ export function setupSpeakerModel(content: THREE.Object3D) {
         whiteMat.polygonOffsetFactor = -6.0;
         whiteMat.polygonOffsetUnits = -6.0;
         mesh.renderOrder = 20;
-        mesh.position.y += 0.003;
+        if (!mesh.userData.yOffsetApplied) {
+          mesh.position.y += 0.003;
+          mesh.userData.yOffsetApplied = true;
+        }
       } else if (isBolt) {
         // Charging lightning bolt logo: embossed titanium gray showing crisp 3D beveled detail like the black variant
         whiteMat.color.setRGB(0.20, 0.24, 0.28); // Titanium / slate gray (#334155)
@@ -181,7 +194,10 @@ export function setupSpeakerModel(content: THREE.Object3D) {
         whiteMat.polygonOffsetFactor = -8.0;
         whiteMat.polygonOffsetUnits = -8.0;
         mesh.renderOrder = 25;
-        mesh.position.y += 0.005;
+        if (!mesh.userData.yOffsetApplied) {
+          mesh.position.y += 0.005;
+          mesh.userData.yOffsetApplied = true;
+        }
       } else if (isDisc) {
         // Raised charging disc: clean soft-slate pearl silicone pad providing subtle recessed disc depth
         whiteMat.color.setRGB(0.84, 0.87, 0.90);
@@ -192,7 +208,10 @@ export function setupSpeakerModel(content: THREE.Object3D) {
         whiteMat.polygonOffsetFactor = -3.0;
         whiteMat.polygonOffsetUnits = -3.0;
         mesh.renderOrder = 15;
-        mesh.position.y += 0.001;
+        if (!mesh.userData.yOffsetApplied) {
+          mesh.position.y += 0.001;
+          mesh.userData.yOffsetApplied = true;
+        }
       } else if (isPanel) {
         // Surrounding top panel: pristine satin white deck
         whiteMat.color.setRGB(0.95, 0.96, 0.97);
@@ -213,6 +232,11 @@ export function setupSpeakerModel(content: THREE.Object3D) {
         // Rear IO molded capsule
         whiteMat.color.setRGB(0.92, 0.94, 0.95);
         whiteMat.roughness = 0.42;
+        whiteMat.metalness = 0.02;
+      } else if (name.startsWith('Solid front control mounting strip')) {
+        // Front control mounting strip behind clock control buttons
+        whiteMat.color.setRGB(0.94, 0.95, 0.96);
+        whiteMat.roughness = 0.40;
         whiteMat.metalness = 0.02;
       } else {
         // Bottom base housing
@@ -241,6 +265,12 @@ export function applySpeakerVariant(root: THREE.Object3D, variant: 'black' | 'wh
           mesh.material = mesh.userData.whiteMat;
         } else if (mesh.userData.blackMat) {
           mesh.material = mesh.userData.blackMat;
+        }
+      } else if (mesh.userData.isSpeakerFabric) {
+        if (variant === 'white' && mesh.userData.whiteFabricMat) {
+          mesh.material = mesh.userData.whiteFabricMat;
+        } else if (mesh.userData.blackFabricMat) {
+          mesh.material = mesh.userData.blackFabricMat;
         }
       }
     }

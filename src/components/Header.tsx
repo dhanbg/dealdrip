@@ -1,28 +1,43 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
+import { useRouter, usePathname } from 'next/navigation';
 import { useStore, CategoryFilter } from '@/context/StoreContext';
+import { authClient } from '@/lib/auth-client';
+import { User, Shield } from 'lucide-react';
 
 export function Header() {
   const { bagCount, openBag, setFilter } = useStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+  const { data: session } = authClient.useSession();
 
   const handleNavClick = (category: CategoryFilter) => {
     setFilter(category);
     setMobileMenuOpen(false);
+
+    if (pathname !== '/') {
+      router.push('/#collection');
+      return;
+    }
+
     const collectionEl = document.getElementById('collection');
     if (collectionEl) {
       collectionEl.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
+  const isAdmin = (session?.user as any)?.role === 'admin';
+
   return (
     <>
       <header className="site-header">
-        <a className="wordmark" href="#experience" aria-label="Deal Drip home">
+        <Link className="wordmark" href="/" aria-label="Deal Drip home">
           <img src="/assets/logo.png" alt="" className="brand-logo" width="30" height="30" />
           <span>DEAL DRIP</span>
-        </a>
+        </Link>
         <nav className="desktop-nav" aria-label="Main navigation">
           <button onClick={() => handleNavClick('All')}>Shop all</button>
           <button onClick={() => handleNavClick('Audio')}>Audio</button>
@@ -31,6 +46,41 @@ export function Header() {
         </nav>
         <div className="header-actions">
           <span className="edition">OBJECTS FOR WHAT’S NEXT</span>
+
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="account-toggle"
+              style={{ color: '#dfff4f', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '5px', textDecoration: 'none', fontSize: '13px' }}
+              aria-label="Admin Dashboard"
+            >
+              <Shield size={15} />
+              <span>Admin</span>
+            </Link>
+          )}
+
+          {session?.user ? (
+            <Link
+              href="/account"
+              className="account-toggle"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: '#fff', fontSize: '13px' }}
+              aria-label="My Account"
+            >
+              <User size={15} />
+              <span>Account</span>
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="account-toggle"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', textDecoration: 'none', color: '#fff', fontSize: '13px' }}
+              aria-label="Sign in"
+            >
+              <User size={15} />
+              <span>Sign in</span>
+            </Link>
+          )}
+
           <button
             className="bag-toggle"
             onClick={openBag}
@@ -61,6 +111,35 @@ export function Header() {
           <button onClick={() => handleNavClick('Audio')}>Audio</button>
           <button onClick={() => handleNavClick('Gaming')}>Gaming</button>
           <button onClick={() => handleNavClick('Everyday')}>Everyday</button>
+          {isAdmin && (
+            <Link
+              href="/admin"
+              onClick={() => setMobileMenuOpen(false)}
+              style={{ color: '#dfff4f', textAlign: 'left', padding: '12px 0', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              <Shield size={16} />
+              <span>Admin Dashboard</span>
+            </Link>
+          )}
+          {session?.user ? (
+            <Link
+              href="/account"
+              onClick={() => setMobileMenuOpen(false)}
+              style={{ color: '#fff', textAlign: 'left', padding: '12px 0', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              <User size={16} />
+              <span>My Account</span>
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              onClick={() => setMobileMenuOpen(false)}
+              style={{ color: '#fff', textAlign: 'left', padding: '12px 0', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              <User size={16} />
+              <span>Sign in / Register</span>
+            </Link>
+          )}
         </nav>
       )}
     </>

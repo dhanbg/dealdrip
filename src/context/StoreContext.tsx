@@ -1,10 +1,25 @@
 'use client';
 
-import React, { createContext, useContext, useState, useMemo, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+} from 'react';
 import { catalog, getProduct, Product } from '@/data/catalog';
+import {
+  useCartStore,
+  selectCartItemsList,
+  selectCartTotalCount,
+  selectCartSubtotal,
+} from '@/store/useCartStore';
+import { CartItem as StoreCartItem } from '@/types/cart';
 
 export type CategoryFilter = 'All' | 'Audio' | 'Gaming' | 'Everyday';
 
+// Backwards-compatible CartItem shape for existing legacy components
 export interface CartItem {
   product: Product;
   quantity: number;
@@ -45,61 +60,65 @@ const StoreContext = createContext<StoreContextType | null>(null);
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [filter, setFilter] = useState<CategoryFilter>('All');
-  const [bag, setBag] = useState<Record<string, number>>({});
   const [quickviewProduct, setQuickviewProduct] = useState<Product | null>(null);
   const [quickviewVariantId, setQuickviewVariantId] = useState<string | null>(null);
   const [speakerVariant, setSpeakerVariant] = useState<'black' | 'white'>('black');
-  const [isBagOpen, setIsBagOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Hook into persistent Zustand cart store
+  const cartStoreItems = useCartStore((s) => s.items);
+  const isDrawerOpen = useCartStore((s) => s.isDrawerOpen);
+  const isHydrated = useCartStore((s) => s.isHydrated);
+  const addItem = useCartStore((s) => s.addItem);
+  const updateStoreQty = useCartStore((s) => s.updateQuantity);
+  const removeStoreItem = useCartStore((s) => s.removeItem);
+  const clearStoreCart = useCartStore((s) => s.clearCart);
+  const openDrawer = useCartStore((s) => s.openDrawer);
+  const closeDrawer = useCartStore((s) => s.closeDrawer);
+
+  // Hydration sync
+  const [clientHydrated, setClientHydrated] = useState(false);
+  useEffect(() => {
+    setClientHydrated(true);
+    useCartStore.getState().setHydrated(true);
+  }, []);
 
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
   }, []);
 
-  const addToBag = useCallback((id: string, count = 1, variantId?: string) => {
-    const product = getProduct(id);
-    if (!product || count < 1 || count > 99) return;
+  const addToBag = useCallback(
+    (id: string, count = 1, variantId?: string) => {
+      addItem(id, count, variantId);
+    },
+    [addItem]
+  );
 
-    const resolvedVariantId =
-      variantId || (product.variants ? product.defaultVariant || product.variants[0]?.id : undefined);
-    const cartKey = resolvedVariantId ? `${id}:${resolvedVariantId}` : id;
-
-    setBag((prev) => {
-      const current = prev[cartKey] || 0;
-      const next = Math.min(99, current + count);
-      return { ...prev, [cartKey]: next };
-    });
-
-    const variantObj = product.variants?.find((v) => v.id === resolvedVariantId);
-    const finishLabel = variantObj ? ` (${variantObj.name})` : '';
-    showToast(`${product.name}${finishLabel} added to your bag`);
-  }, [showToast]);
-
-  const updateQuantity = useCallback((cartKey: string, delta: number) => {
-    setBag((prev) => {
-      const current = prev[cartKey] || 0;
-      const next = current + delta;
+  const updateQuantity = useCallback(
+    (cartKey: string, delta: number) => {
+      const currentItem = cartStoreItems[cartKey];
+      if (!currentItem) return;
+      const next = currentItem.quantity + delta;
       if (next <= 0) {
-        const copy = { ...prev };
-        delete copy[cartKey];
-        return copy;
+        removeStoreItem(cartKey);
+      } else {
+        updateStoreQty(cartKey, next);
       }
-      return { ...prev, [cartKey]: Math.min(99, next) };
-    });
-  }, []);
+    },
+    [cartStoreItems, removeStoreItem, updateStoreQty]
+  );
 
-  const removeFromBag = useCallback((cartKey: string) => {
-    setBag((prev) => {
-      const copy = { ...prev };
-      delete copy[cartKey];
-      return copy;
-    });
-  }, []);
+  const removeFromBag = useCallback(
+    (cartKey: string) => {
+      removeStoreItem(cartKey);
+    },
+    [removeStoreItem]
+  );
 
   const clearBag = useCallback(() => {
-    setBag({});
-  }, []);
+    clearStoreCart();
+  }, [clearStoreCart]);
 
   const openQuickview = useCallback((productOrId: Product | string, variantId?: string) => {
     const prod = typeof productOrId === 'string' ? getProduct(productOrId) : productOrId;
@@ -114,8 +133,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setQuickviewVariantId(null);
   }, []);
 
-  const openBag = useCallback(() => setIsBagOpen(true), []);
-  const closeBag = useCallback(() => setIsBagOpen(false), []);
+  const openBag = useCallback(() => openDrawer(), [openDrawer]);
+  const closeBag = useCallback(() => closeDrawer(), [closeDrawer]);
   const openCheckout = useCallback(() => setIsCheckoutOpen(true), []);
   const closeCheckout = useCallback(() => setIsCheckoutOpen(false), []);
 
@@ -124,34 +143,47 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return catalog.filter((p) => p.category === filter);
   }, [filter]);
 
+  // Derived bag dictionary { [cartKey]: quantity }
+  const bag = useMemo(() => {
+    if (!clientHydrated) return {};
+    const res: Record<string, number> = {};
+    for (const [key, item] of Object.entries(cartStoreItems)) {
+      res[key] = item.quantity;
+    }
+    return res;
+  }, [cartStoreItems, clientHydrated]);
+
+  // Derived legacy CartItem array
   const cartItems = useMemo<CartItem[]>(() => {
+    if (!clientHydrated) return [];
     const items: CartItem[] = [];
-    for (const [cartKey, quantity] of Object.entries(bag)) {
-      const parts = cartKey.split(':');
-      const productId = parts[0];
-      const variantId = parts[1];
-      const product = getProduct(productId);
+    for (const [cartKey, item] of Object.entries(cartStoreItems)) {
+      const product = getProduct(item.productId);
       if (product) {
-        const variantObj = product.variants?.find((v) => v.id === variantId);
         items.push({
           product,
-          quantity,
-          variantId,
-          variantName: variantObj?.name,
+          quantity: item.quantity,
+          variantId: item.variantId,
+          variantName: item.variantName,
           cartKey,
         });
       }
     }
     return items;
-  }, [bag]);
+  }, [cartStoreItems, clientHydrated]);
 
   const bagCount = useMemo(() => {
-    return Object.values(bag).reduce((sum, q) => sum + q, 0);
-  }, [bag]);
+    if (!clientHydrated) return 0;
+    return Object.values(cartStoreItems).reduce((sum, item) => sum + item.quantity, 0);
+  }, [cartStoreItems, clientHydrated]);
 
   const bagTotal = useMemo(() => {
-    return cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-  }, [cartItems]);
+    if (!clientHydrated) return 0;
+    return Object.values(cartStoreItems).reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+  }, [cartStoreItems, clientHydrated]);
 
   const value = useMemo(
     () => ({
@@ -172,7 +204,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       closeQuickview,
       speakerVariant,
       setSpeakerVariant,
-      isBagOpen,
+      isBagOpen: isDrawerOpen,
       openBag,
       closeBag,
       isCheckoutOpen,
@@ -198,7 +230,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       closeQuickview,
       speakerVariant,
       setSpeakerVariant,
-      isBagOpen,
+      isDrawerOpen,
       openBag,
       closeBag,
       isCheckoutOpen,
