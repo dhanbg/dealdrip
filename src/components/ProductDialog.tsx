@@ -256,8 +256,8 @@ export function ProductDialog() {
       });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.7));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 0.95;
-      renderer.setClearColor(0x14151a, 1);
+      renderer.toneMappingExposure = 1.24;
+      renderer.setClearColor(0x232734, 1);
 
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(35, 1, 0.01, 100);
@@ -272,8 +272,8 @@ export function ProductDialog() {
       room.dispose();
       pmrem.dispose();
 
-      scene.add(new THREE.HemisphereLight(0xffffff, 0x1a202c, 0.55));
-      const keyLight = new THREE.DirectionalLight(0xffffff, 1.9);
+      scene.add(new THREE.HemisphereLight(0xffffff, 0x2c3548, 0.80));
+      const keyLight = new THREE.DirectionalLight(0xffffff, 2.25);
       keyLight.position.set(4, 6, 7);
       scene.add(keyLight);
       const rimLight = new THREE.DirectionalLight(0x00f0ff, 1.2);

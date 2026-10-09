@@ -336,7 +336,7 @@ export function HeroStory3D() {
       });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.7));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.05;
+      renderer.toneMappingExposure = 1.25;
       renderer.setClearColor(0x000000, 0);
 
       const scene = new THREE.Scene();
@@ -352,11 +352,11 @@ export function HeroStory3D() {
       room.dispose();
       pmrem.dispose();
 
-      scene.add(new THREE.HemisphereLight(0xffffff, 0x1e293b, 0.55));
-      const keyLight = new THREE.DirectionalLight(0xffffff, 1.9);
+      scene.add(new THREE.HemisphereLight(0xffffff, 0x2c3548, 0.82));
+      const keyLight = new THREE.DirectionalLight(0xffffff, 2.25);
       keyLight.position.set(4, 6, 7);
       scene.add(keyLight);
-      const rimLight = new THREE.DirectionalLight(0x00f0ff, 1.1);
+      const rimLight = new THREE.DirectionalLight(0x00f0ff, 1.15);
       rimLight.position.set(-4, 3, -2);
       scene.add(rimLight);
 

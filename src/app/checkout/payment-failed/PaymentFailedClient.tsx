@@ -151,8 +151,8 @@ export function PaymentFailedClient({
   return (
     <div style={{ maxWidth: '640px', margin: '2rem auto', padding: '0 1.25rem' }}>
       <div style={{
-        background: 'var(--panel-bg, #121316)',
-        border: '1px solid var(--border-color, #23272f)',
+        background: 'var(--panel-bg, #222530)',
+        border: '1px solid var(--border-color, #333a4c)',
         borderRadius: '16px',
         padding: '2.5rem 2rem',
         textAlign: 'center',

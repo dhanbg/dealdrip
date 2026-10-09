@@ -96,15 +96,15 @@ export default async function AdminLayout({
     <div style={{
       display: 'flex',
       minHeight: '100vh',
-      background: '#090a0c',
+      background: '#1b1e28',
       color: '#f1f5f9',
       fontFamily: 'var(--font-sans, system-ui)',
     }}>
       {/* Sidebar */}
       <aside style={{
         width: '260px',
-        background: '#101216',
-        borderRight: '1px solid #1e222b',
+        background: '#222634',
+        borderRight: '1px solid #2d3345',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
